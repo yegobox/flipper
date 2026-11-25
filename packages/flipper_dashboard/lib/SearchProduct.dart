@@ -2,7 +2,10 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/pe_field.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/pe_select.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,6 +45,76 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
     }
   }
 
+  Future<void> _search(String searchKey) async {
+    if (searchKey.isEmpty) {
+      setState(() {
+        _searchResults = [];
+      });
+      return;
+    }
+    final paged = await ProxyService.strategy.variants(
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+      name: searchKey,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    List<Variant> variants = List<Variant>.from(paged.variants);
+    setState(() {
+      _searchResults = variants.isNotEmpty ? variants : [];
+    });
+  }
+
+  void _pick(Variant variant) {
+    ref
+        .read(selectedVariantsLocalProvider.notifier)
+        .addVariant(
+          variant: VVariant(
+            productName: variant.productName!,
+            name: variant.name,
+            retailPrice: variant.retailPrice!,
+            supplyPrice: variant.supplyPrice ?? 0,
+            id: variant.id,
+            productId: variant.productId!,
+          ),
+        );
+    talker.warning("click on item found");
+    _searchController.clear();
+    setState(() {
+      _searchResults = [];
+    });
+  }
+
+  Widget _resultRow(Variant variant) {
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: () => _pick(variant),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                variant.name,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: ProductEditorTokens.ink1,
+                ),
+              ),
+              Text(
+                variant.productName ?? "",
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  color: ProductEditorTokens.ink3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.nonReactive(
@@ -49,122 +122,73 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
       builder: (context, model, child) {
         // final selectedProducts = ref.watch(selectedProductsProvider);
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _searchController,
-                onChanged: (searchKey) async {
-                  if (searchKey.isEmpty) {
-                    setState(() {
-                      _searchResults = [];
-                    });
-                    return;
-                  }
-                  final paged = await ProxyService.strategy.variants(
-                    taxTyCds: ProxyService.box.vatEnabled()
-                        ? ['A', 'B', 'C']
-                        : ['D'],
-                    name: searchKey,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-                  List<Variant> variants = List<Variant>.from(paged.variants);
-                  setState(() {
-                    _searchResults = variants.isNotEmpty ? variants : [];
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: context.flipperL10n.searchProductHint,
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      DropdownButton<String>(
-                        isDense: true,
-                        alignment: AlignmentDirectional.topStart,
-                        value: _selectedProductType,
-                        icon: const Icon(Icons.arrow_drop_down),
-                        elevation: 16,
-                        style: const TextStyle(color: Colors.black),
-                        underline: Container(
-                          height: 2,
-                          color: Colors.transparent,
-                        ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedProductType = newValue!;
-                          });
-                        },
-                        items: _productTypes.map<DropdownMenuItem<String>>((
-                          String value,
-                        ) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(
-                              _productTypeLabel(context.flipperL10n, value),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          FluentIcons.add_24_regular,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
+        final l10n = context.flipperL10n;
+        // No horizontal padding of its own: it lines up with the section.
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: PeTextInput(
+                    controller: _searchController,
+                    leadingIcon: Icons.search,
+                    placeholder: l10n.searchProductHint,
+                    onChanged: _search,
                   ),
-                  border: OutlineInputBorder(),
                 ),
-              ),
-              SizedBox(height: 16.0),
-              Container(
-                color: Colors.white,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _searchResults.length,
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      onTap: () {
-                        ref
-                            .read(selectedVariantsLocalProvider.notifier)
-                            .addVariant(
-                              variant: VVariant(
-                                productName: _searchResults[index].productName!,
-                                name: _searchResults[index].name,
-                                retailPrice: _searchResults[index].retailPrice!,
-                                supplyPrice:
-                                    _searchResults[index].supplyPrice ?? 0,
-                                id: _searchResults[index].id,
-                                productId: _searchResults[index].productId!,
-                              ),
-                            );
-                        talker.warning("click on item found");
-                        _searchController.clear();
-                        setState(() {
-                          _searchResults = [];
-                        });
-                      },
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                        ),
-                        child: ListTile(
-                          title: Text(_searchResults[index].name),
-                          subtitle: Text(
-                            _searchResults[index].productName ?? "",
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 190,
+                  child: PeSelect<String>(
+                    value: _selectedProductType,
+                    items: [
+                      for (final value in _productTypes)
+                        DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            _productTypeLabel(l10n, value),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                    );
-                  },
+                    ],
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedProductType = newValue!;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            if (_searchResults.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: ProductEditorTokens.surface,
+                  borderRadius: BorderRadius.circular(PosTokensRadius.md),
+                  border: Border.all(
+                    color: ProductEditorTokens.line,
+                    width: 1.5,
+                  ),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: _searchResults.length,
+                  separatorBuilder: (context, index) => const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: ProductEditorTokens.line,
+                  ),
+                  itemBuilder: (context, index) =>
+                      _resultRow(_searchResults[index]),
                 ),
               ),
             ],
-          ),
+          ],
         );
       },
     );

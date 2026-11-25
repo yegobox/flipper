@@ -88,7 +88,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   final ValueNotifier<int> _formTick = ValueNotifier(0);
   void _onFormControllerChanged() => _formTick.value++;
   final _formKey = GlobalKey<FormState>();
-  final _fieldComposite = GlobalKey<FormState>();
   final _sectionBasicsKey = GlobalKey();
   final _sectionPricingKey = GlobalKey();
   final _sectionInventoryKey = GlobalKey();
@@ -719,7 +718,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Future<void> _onDesktopSave(ScannViewModel model, Product? productRef) async {
     if (!mounted) return;
     try {
-      if (_formKey.currentState!.validate() && !ref.read(isCompositeProvider)) {
+      // One form holds every field, a combo's bar code included, so an
+      // invalid field blocks either save.
+      final formValid = _formKey.currentState!.validate();
+      if (formValid && !ref.read(isCompositeProvider)) {
         if (productRef == null) {
           showErrorNotification(
             context,
@@ -734,7 +736,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           productRef,
           selectedProductType: selectedProductType,
         );
-      } else if (_fieldComposite.currentState?.validate() ?? false) {
+      } else if (formValid) {
         await _handleCompositeProductSave(model);
       }
     } catch (e) {
@@ -907,7 +909,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   const SizedBox(height: 16),
                   Fieldcompositeactivated(
-                    formKey: _fieldComposite,
                     skuController: skuController,
                     barCodeController: barCodeController,
                   ),

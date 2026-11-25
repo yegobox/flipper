@@ -84,6 +84,11 @@ class PeField extends StatelessWidget {
   }
 }
 
+/// The editor's 50px text box.
+///
+/// It is a [FormField], so a validator runs with the surrounding [Form]. The
+/// message is drawn under the box: inside it, a TextFormField would squeeze
+/// the error into the fixed height and clip it.
 class PeTextInput extends StatelessWidget {
   const PeTextInput({
     super.key,
@@ -93,12 +98,14 @@ class PeTextInput extends StatelessWidget {
     this.validator,
     this.placeholder,
     this.prefix,
+    this.leadingIcon,
     this.suffix,
     this.mono = false,
     this.readOnly = false,
     this.keyboardType,
     this.inputFormatters,
     this.textInputAction,
+    this.textCapitalization = TextCapitalization.none,
     this.onFieldSubmitted,
     this.obscureText = false,
     this.maxLines = 1,
@@ -113,12 +120,16 @@ class PeTextInput extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final String? placeholder;
   final String? prefix;
+
+  /// An icon before the text (a search box's magnifier).
+  final IconData? leadingIcon;
   final Widget? suffix;
   final bool mono;
   final bool readOnly;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final TextInputAction? textInputAction;
+  final TextCapitalization textCapitalization;
   final ValueChanged<String>? onFieldSubmitted;
   final bool obscureText;
   final int maxLines;
@@ -128,32 +139,54 @@ class PeTextInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final validate = validator;
+    return FormField<String>(
+      initialValue: controller?.text ?? '',
+      enabled: enabled,
+      // The controller holds the truth: code can set its text (a loaded
+      // product, a computed price) without going through onChanged.
+      validator: validate == null
+          ? null
+          : (value) => validate(controller?.text ?? value),
+      builder: (field) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _box(field),
+          if (field.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                field.errorText!,
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: ProductEditorTokens.loss,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _box(FormFieldState<String> field) {
     final filled = (controller?.text.isNotEmpty ?? false);
+    final leading = prefix != null || leadingIcon != null;
     return Container(
       height: ProductEditorTokens.fieldHeight,
       decoration: BoxDecoration(
-        color: locked
-            ? ProductEditorTokens.surface2
-            : filled
+        color: locked || filled
             ? ProductEditorTokens.surface2
             : ProductEditorTokens.surface,
         borderRadius: BorderRadius.circular(PosTokensRadius.md),
         border: Border.all(
-          color: locked ? ProductEditorTokens.line : ProductEditorTokens.line,
+          color: field.hasError
+              ? ProductEditorTokens.loss
+              : ProductEditorTokens.line,
           width: 1.5,
-          style: locked ? BorderStyle.solid : BorderStyle.solid,
         ),
       ),
-      foregroundDecoration: locked
-          ? BoxDecoration(
-              borderRadius: BorderRadius.circular(PosTokensRadius.md),
-              border: Border.all(
-                color: ProductEditorTokens.line,
-                width: 1.5,
-                style: BorderStyle.solid,
-              ),
-            )
-          : null,
       child: Row(
         children: [
           if (prefix != null) ...[
@@ -169,13 +202,27 @@ class PeTextInput extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
+          ] else if (leadingIcon != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 14),
+              child: Icon(
+                leadingIcon,
+                size: 18,
+                color: ProductEditorTokens.ink3,
+              ),
+            ),
+            const SizedBox(width: 10),
           ],
           Expanded(
-            child: TextFormField(
+            child: TextField(
               controller: controller,
               focusNode: focusNode,
-              onChanged: onChanged,
-              validator: validator,
+              onChanged: (value) {
+                field.didChange(value);
+                // Clear a shown error as soon as the input is fixed.
+                if (field.hasError) field.validate();
+                onChanged?.call(value);
+              },
               readOnly: readOnly || locked,
               enabled: enabled,
               onTap: onTap,
@@ -184,7 +231,8 @@ class PeTextInput extends StatelessWidget {
               keyboardType: keyboardType,
               inputFormatters: inputFormatters,
               textInputAction: textInputAction,
-              onFieldSubmitted: onFieldSubmitted,
+              textCapitalization: textCapitalization,
+              onSubmitted: onFieldSubmitted,
               style:
                   GoogleFonts.outfit(
                     fontSize: 15,
@@ -204,7 +252,7 @@ class PeTextInput extends StatelessWidget {
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: prefix == null ? 14 : 0,
+                  horizontal: leading ? 0 : 14,
                   vertical: 14,
                 ),
                 hintText: placeholder,

@@ -147,7 +147,7 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.pumpWidget(_app(container, const SearchProduct()));
-      await tester.enterText(find.byType(TextFormField), 'soda');
+      await tester.enterText(find.byType(TextField), 'soda');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Soda 50cl'));
       await tester.pumpAndSettle();
