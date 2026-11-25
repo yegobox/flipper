@@ -7917,6 +7917,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
+  String get serviceModeSwitching => 'Guhindura uburyo…';
+
+  @override
+  String serviceModeSwitchingTo(String mode) {
+    return 'Kujya kuri $mode…';
+  }
+
+  @override
   String get serviceModeSwitchFailed =>
       'Ntibyashobotse guhindura uburyo bwa serivisi.';
 
@@ -16247,7 +16255,6 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
-  @override
   String get incomingOrdersColBranch => 'Ishami';
 
   @override
@@ -16273,6 +16280,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
     return '$_temp0';
   }
 
+  @override
   String incomingOrdersQtyRatio(int requested, String approved) {
     String _temp0 = intl.Intl.pluralLogic(
       requested,

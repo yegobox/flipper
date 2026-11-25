@@ -13511,6 +13511,18 @@ abstract class FlipperAppLocalizations {
   /// **'This device switched to {mode} · {hotkey} to cycle'**
   String serviceModeSwitched(String mode, String hotkey);
 
+  /// Service-mode hotkey: overlay label while the switch is being judged
+  ///
+  /// In en, this message translates to:
+  /// **'Switching mode…'**
+  String get serviceModeSwitching;
+
+  /// Service-mode hotkey: overlay label while switching to a mode
+  ///
+  /// In en, this message translates to:
+  /// **'Switching to {mode}…'**
+  String serviceModeSwitchingTo(String mode);
+
   /// Service-mode hotkey: unexpected failure
   ///
   /// In en, this message translates to:
