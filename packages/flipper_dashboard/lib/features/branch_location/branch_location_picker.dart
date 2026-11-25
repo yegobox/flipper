@@ -25,6 +25,10 @@ class BranchLocationPick {
 /// Where the map opens when the branch has no real location yet.
 const LatLng _kigali = LatLng(-1.9441, 30.0619);
 
+/// A fix less precise than this (metres) is too coarse to save as a branch
+/// location without the user placing the pin; the picker zooms out for it.
+const double maxBranchFixAccuracy = 150;
+
 /// Below this width the picker takes the whole screen.
 const double _fullScreenBelow = 600;
 
@@ -84,11 +88,37 @@ String locationFailureMessage(BuildContext context, LocationFailure failure) {
   };
 }
 
-/// Failures only the system settings can fix: the OS will not show the
-/// permission dialog again, or location is switched off.
+/// Failures the system settings can fix: the OS will not show the
+/// permission dialog again, location is switched off, or it is on but gives
+/// no fix (Android's Location Accuracy / Wi-Fi scanning is off). Only a
+/// plain "denied" is left out, because asking again still shows the dialog.
 bool locationFailureNeedsSettings(LocationFailure failure) =>
-    failure == LocationFailure.deniedForever ||
-    failure == LocationFailure.serviceDisabled;
+    failure != LocationFailure.denied;
+
+/// Runs [onReturn] once, the next time the app comes back to the foreground
+/// (the user is back from the settings app). A return after [giveUpAfter]
+/// is ignored so a forgotten wait never fires much later. Call the returned
+/// function to cancel it early.
+VoidCallback onNextAppResume(
+  VoidCallback onReturn, {
+  Duration giveUpAfter = const Duration(minutes: 10),
+  @visibleForTesting DateTime Function() now = DateTime.now,
+}) {
+  final started = now();
+  AppLifecycleListener? listener;
+  void cancel() {
+    listener?.dispose();
+    listener = null;
+  }
+
+  listener = AppLifecycleListener(
+    onResume: () {
+      cancel();
+      if (now().difference(started) <= giveUpAfter) onReturn();
+    },
+  );
+  return cancel;
+}
 
 class _BranchLocationPicker extends StatefulWidget {
   const _BranchLocationPicker({
@@ -120,6 +150,11 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
   /// default view of Kigali can never be saved by accident.
   late bool _chosen = widget.initial != null;
 
+  /// Counts the times the user put the pin somewhere (drag, tap, search).
+  /// Unlike [_chosen], a GPS fix never bumps it, so a position that arrives
+  /// late can tell whether the user placed the pin while it was on the way.
+  int _handPlacements = 0;
+
   /// The map is being dragged; the pin lifts while it is.
   bool _moving = false;
   Timer? _settleTimer;
@@ -137,6 +172,9 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
   List<PlaceResult>? _results;
   bool _searching = false;
 
+  /// Cancels the "try again when back from settings" wait.
+  VoidCallback? _cancelResumeRetry;
+
   @override
   void initState() {
     super.initState();
@@ -152,6 +190,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
 
   @override
   void dispose() {
+    _cancelResumeRetry?.call();
     _settleTimer?.cancel();
     _lookupTimer?.cancel();
     _map.dispose();
@@ -172,6 +211,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
     _settleTimer = Timer(const Duration(milliseconds: 250), () {
       if (mounted) setState(() => _moving = false);
     });
+    _handPlacements++;
     setState(() {
       _chosen = true;
       _moving = true;
@@ -179,6 +219,12 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _results = null;
     });
     _scheduleLookup();
+  }
+
+  /// The user picked [point] (map tap or search result).
+  void _placeByHand(LatLng point, {double zoom = 17, String? address}) {
+    _handPlacements++;
+    _moveTo(point, zoom: zoom, address: address);
   }
 
   void _moveTo(LatLng point, {double zoom = 17, String? address}) {
@@ -233,6 +279,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _locating = true;
       _failure = null;
     });
+    final placementsBefore = _handPlacements;
     final outcome = await widget.location.currentPosition();
     if (!mounted) return;
     setState(() {
@@ -246,8 +293,28 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _gpsFix = fix;
       _gpsAccuracy = accuracy;
     });
+    // The user placed the pin while the fix was on the way: keep their pin.
+    if (_handPlacements != placementsBefore) return;
     // A coarse fix gets a wider view so its circle fits on screen.
-    _moveTo(fix, zoom: (accuracy ?? 0) > 150 ? 15 : 18);
+    _moveTo(fix, zoom: (accuracy ?? 0) > maxBranchFixAccuracy ? 15 : 18);
+  }
+
+  /// Opens the settings screen for [failure] and, when the user comes back,
+  /// reads the position again unless they placed the pin by hand meanwhile.
+  Future<void> _openSettings(LocationFailure failure) async {
+    _cancelResumeRetry?.call();
+    final placementsBefore = _handPlacements;
+    _cancelResumeRetry = onNextAppResume(() {
+      _cancelResumeRetry = null;
+      if (mounted && _handPlacements == placementsBefore) {
+        unawaited(_useCurrentLocation());
+      }
+    });
+    final opened = await widget.location.openSettingsFor(failure);
+    if (!opened) {
+      _cancelResumeRetry?.call();
+      _cancelResumeRetry = null;
+    }
   }
 
   Future<void> _search() async {
@@ -327,7 +394,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
                         }),
                         onPick: (place) {
                           _queryFocus.unfocus();
-                          _moveTo(
+                          _placeByHand(
                             LatLng(place.latitude, place.longitude),
                             address: place.label,
                           );
@@ -360,7 +427,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
         ),
         onPositionChanged: _onPositionChanged,
         // Tapping a spot brings it under the pin.
-        onTap: (_, point) => _moveTo(point, zoom: _map.camera.zoom),
+        onTap: (_, point) => _placeByHand(point, zoom: _map.camera.zoom),
       ),
       children: [
         if (widget.loadTiles)
@@ -451,7 +518,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
                 actionLabel: locationFailureNeedsSettings(failure)
                     ? l10n.branchLocationOpenSettings
                     : null,
-                onAction: () => widget.location.openSettingsFor(failure),
+                onAction: () => _openSettings(failure),
               ),
               const SizedBox(height: 12),
             ],

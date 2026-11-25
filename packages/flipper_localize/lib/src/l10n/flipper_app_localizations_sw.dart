@@ -26669,7 +26669,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get branchLocationUnavailable =>
-      'Imeshindwa kupata mahali ulipo. Hakikisha eneo limewashwa na Flipper imeruhusiwa.';
+      'Imeshindwa kupata mahali ulipo. Fungua mipangilio, washa usahihi wa eneo (Wi-Fi na mtandao wa simu), kisha urudi ndani ya dakika 10: Flipper itajaribu tena.';
 
   @override
   String get branchLocationSaved => 'Mahali pa tawi pamehifadhiwa';
@@ -26707,6 +26707,9 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get branchLocationOpenSettings => 'Fungua mipangilio';
+
+  @override
+  String get branchLocationTryAgain => 'Jaribu tena';
 
   @override
   String get branchLocationPickerHint =>

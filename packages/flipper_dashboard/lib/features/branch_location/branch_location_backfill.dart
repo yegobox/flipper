@@ -71,46 +71,160 @@ Future<void> maybePromptBranchLocationBackfill(
       await _snooze(box, branchId, _notNowSnooze);
       return;
     }
+    if (!context.mounted) return;
 
-    final outcome = await services.location.currentPosition();
-    if (outcome.failure case final failure?) {
-      // Refusing the system dialog is an answer like "Not now"; anything
-      // else (location off, blocked, no fix) is worth another try tomorrow.
-      await _snooze(
-        box,
-        branchId,
-        failure == LocationFailure.denied ? _notNowSnooze : _failureSnooze,
-      );
-      if (!context.mounted) return;
-      _showSnack(
-        context,
-        locationFailureMessage(context, failure),
-        action: locationFailureNeedsSettings(failure)
-            ? SnackBarAction(
-                label: l10n.branchLocationOpenSettings,
-                onPressed: () => services.location.openSettingsFor(failure),
-              )
-            : null,
-      );
-      return;
-    }
-    try {
-      await services.strategy.updateBranchCoordinates(
-        branchId: branchId,
-        latitude: outcome.latitude!,
-        longitude: outcome.longitude!,
-        flipperHttpClient: services.http,
-      );
-    } catch (e) {
-      talker.warning('Saving branch location failed: $e');
-      await _snooze(box, branchId, _failureSnooze);
-      if (context.mounted) _showSnack(context, l10n.branchLocationSaveFailed);
-      return;
-    }
-    if (context.mounted) _showSnack(context, l10n.branchLocationSaved);
+    await _captureAndSave(
+      context,
+      services,
+      branchId,
+      ScaffoldMessenger.maybeOf(context),
+      l10n,
+    );
   } catch (e, s) {
     talker.warning('Branch location prompt skipped: $e\n$s');
   }
+}
+
+enum _FailureChoice { tryAgain, openSettings, notNow }
+
+/// Reads the position and saves it as the branch location. When there is no
+/// fix the user can try again, give up for now, or open the settings screen
+/// that fixes it; coming back from settings tries again on its own, so the
+/// location still gets saved without waiting for the next prompt.
+///
+/// [messenger] and [l10n] are taken up front so the result can still be
+/// shown after a retry that outlived [context].
+Future<void> _captureAndSave(
+  BuildContext context,
+  BranchServices services,
+  String branchId,
+  ScaffoldMessengerState? messenger,
+  FlipperAppLocalizations l10n,
+) async {
+  final box = services.box;
+  while (true) {
+    final outcome = await services.location.currentPosition();
+    // A Wi-Fi/cell or remembered fix can be hundreds of metres off, and once
+    // saved the prompt never returns; treat it like no fix at all.
+    final failure =
+        outcome.failure ??
+        (_preciseEnough(outcome.accuracy) ? null : LocationFailure.unavailable);
+    if (failure == null) {
+      await _saveCoordinates(
+        services,
+        branchId,
+        outcome.latitude!,
+        outcome.longitude!,
+        messenger,
+        l10n,
+      );
+      return;
+    }
+    final choice = context.mounted
+        ? await _askAfterFailure(context, failure)
+        : _FailureChoice.notNow;
+    switch (choice) {
+      case _FailureChoice.tryAgain:
+        continue;
+      case _FailureChoice.openSettings:
+        // No snooze yet: if Android kills Flipper while the user is in
+        // settings, the prompt simply comes back at the next start.
+        final cancel = onNextAppResume(() async {
+          try {
+            // Up to 10 minutes later: another device may have saved it since.
+            final branch = await services.remoteBranch(branchId);
+            if (branch != null &&
+                hasRealBranchCoordinates(branch.latitude, branch.longitude)) {
+              return;
+            }
+            await _captureAndSave(context, services, branchId, messenger, l10n);
+          } catch (e, s) {
+            talker.warning('Branch location retry failed: $e\n$s');
+          }
+        });
+        if (!await services.location.openSettingsFor(failure)) {
+          cancel();
+          await _snooze(box, branchId, _failureSnooze);
+        }
+        return;
+      case _FailureChoice.notNow:
+        // Refusing the system dialog is an answer like "Not now"; anything
+        // else (location off, blocked, no fix) is worth another try tomorrow.
+        await _snooze(
+          box,
+          branchId,
+          failure == LocationFailure.denied ? _notNowSnooze : _failureSnooze,
+        );
+        return;
+    }
+  }
+}
+
+bool _preciseEnough(double? accuracy) =>
+    accuracy != null && accuracy <= maxBranchFixAccuracy;
+
+/// A dialog rather than a snackbar: the user has to see the way to fix it.
+Future<_FailureChoice> _askAfterFailure(
+  BuildContext context,
+  LocationFailure failure,
+) async {
+  final l10n = context.flipperL10n;
+  final choice = await showDialog<_FailureChoice>(
+    context: context,
+    builder: (dialogContext) {
+      void pick(_FailureChoice c) => Navigator.of(dialogContext).pop(c);
+      return AlertDialog(
+        icon: const Icon(Icons.location_off_outlined),
+        content: Text(locationFailureMessage(context, failure)),
+        actions: [
+          TextButton(
+            onPressed: () => pick(_FailureChoice.notNow),
+            child: Text(l10n.branchLocationNotNow),
+          ),
+          if (locationFailureNeedsSettings(failure)) ...[
+            TextButton(
+              onPressed: () => pick(_FailureChoice.tryAgain),
+              child: Text(l10n.branchLocationTryAgain),
+            ),
+            FilledButton.icon(
+              onPressed: () => pick(_FailureChoice.openSettings),
+              icon: const Icon(Icons.settings_outlined, size: 18),
+              label: Text(l10n.branchLocationOpenSettings),
+            ),
+          ] else
+            FilledButton(
+              onPressed: () => pick(_FailureChoice.tryAgain),
+              child: Text(l10n.branchLocationTryAgain),
+            ),
+        ],
+      );
+    },
+  );
+  return choice ?? _FailureChoice.notNow;
+}
+
+Future<void> _saveCoordinates(
+  BranchServices services,
+  String branchId,
+  double latitude,
+  double longitude,
+  ScaffoldMessengerState? messenger,
+  FlipperAppLocalizations l10n,
+) async {
+  try {
+    await services.strategy.updateBranchCoordinates(
+      branchId: branchId,
+      latitude: latitude,
+      longitude: longitude,
+      flipperHttpClient: services.http,
+    );
+  } catch (e) {
+    talker.warning('Saving branch location failed: $e');
+    await _snooze(services.box, branchId, _failureSnooze);
+    _showSnack(messenger, l10n.branchLocationSaveFailed);
+    return;
+  }
+  _showSnack(messenger, l10n.branchLocationSaved);
 }
 
 Map<String, dynamic> _readSnoozes(LocalStorage box) {
@@ -134,17 +248,7 @@ Future<void> _snooze(LocalStorage box, String branchId, Duration duration) {
   return box.writeString(key: _snoozeKey, value: jsonEncode(snoozes));
 }
 
-void _showSnack(
-  BuildContext context,
-  String message, {
-  SnackBarAction? action,
-}) {
-  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-    SnackBar(
-      content: Text(message),
-      action: action,
-      // Long enough to reach the settings button.
-      duration: Duration(seconds: action == null ? 4 : 10),
-    ),
-  );
+void _showSnack(ScaffoldMessengerState? messenger, String message) {
+  if (messenger == null || !messenger.mounted) return;
+  messenger.showSnackBar(SnackBar(content: Text(message)));
 }
