@@ -110,8 +110,44 @@ jobs:
       - name: Install LCOV
         run: sudo apt-get update && sudo apt-get install -y lcov
 
+      # flipper_web's ditto_singleton_store_test opens real Ditto stores and
+      # skips without a native library. `flutter test` builds no plugins, so
+      # fetch the Linux library the ditto_live plugin build would download, at
+      # the version melos bootstrap resolved for flipper_web.
+      - name: Resolve ditto_live version
+        id: ditto
+        shell: bash
+        run: |
+          version=$(grep -A7 '^  ditto_live:' apps/flipper_web/pubspec.lock | sed -n 's/^ *version: "\(.*\)"/\1/p')
+          if [ -z "$version" ]; then
+            echo "::error::ditto_live not found in apps/flipper_web/pubspec.lock"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dir=$RUNNER_TEMP/dittoffi" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Ditto native library
+        id: ditto-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.ditto.outputs.dir }}
+          key: libdittoffi-linux-x86_64-${{ steps.ditto.outputs.version }}
+
+      - name: Download the Ditto native library
+        if: steps.ditto-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p "${{ steps.ditto.outputs.dir }}"
+          curl -fsSL --retry 3 -o "${{ steps.ditto.outputs.dir }}/libdittoffi.so" \
+            "https://software.ditto.live/flutter/ditto/${{ steps.ditto.outputs.version }}/linux/x86_64/libdittoffi.so"
+
       - name: Run tests with coverage
-        run: dart run melos run test:ci
+        env:
+          LIBDITTOFFI_PATH: ${{ steps.ditto.outputs.dir }}/libdittoffi.so
+        run: |
+          # Fail rather than let the store tests skip and drop coverage.
+          test -s "$LIBDITTOFFI_PATH" || { echo "::error::missing $LIBDITTOFFI_PATH"; exit 1; }
+          dart run melos run test:ci
 #  # dart run realm install
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

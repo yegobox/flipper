@@ -5,8 +5,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqflite.dart';
 
 mixin DatabasePath {
+  /// Tests set this to take the Android branch on any host, even under
+  /// FLUTTER_TEST_ENV, with it standing in for sqflite's databases path.
+  @visibleForTesting
+  static Future<String> Function()? debugAndroidDatabasesPath;
+
   static Future<String> getDatabaseDirectory({String? subDirectory}) async {
-    if (isTestEnvironment()) {
+    final androidRoot = debugAndroidDatabasesPath;
+    if (isTestEnvironment() && androidRoot == null) {
       final testDir = Directory('.db');
       if (!await testDir.exists()) {
         await testDir.create(recursive: true);
@@ -16,8 +22,11 @@ mixin DatabasePath {
 
     String dbPath;
 
-    if (Platform.isAndroid) {
-      dbPath = await getDatabasesPath();
+    if (Platform.isAndroid || androidRoot != null) {
+      dbPath = androidDirectory(
+        await (androidRoot ?? getDatabasesPath)(),
+        subDirectory,
+      );
     } else if (Platform.isWindows) {
       // Windows: Use AppData/Local/rw.flipper for database storage
       final supportDir = await getApplicationSupportDirectory();
@@ -44,6 +53,16 @@ mixin DatabasePath {
     }
 
     return dbDir.path;
+  }
+
+  /// Android stores have always lived in the databases root, so the main
+  /// store (`db2`) stays there and existing installs keep their data. Every
+  /// other store gets its own subdirectory: two Ditto stores in one
+  /// directory lock each other out.
+  @visibleForTesting
+  static String androidDirectory(String root, String? subDirectory) {
+    if (subDirectory == null || subDirectory == 'db2') return root;
+    return join(root, subDirectory);
   }
 
   static bool isTestEnvironment() {

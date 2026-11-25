@@ -226,41 +226,58 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     _JournalLedgerSource? source;
     StreamSubscription<_JournalLedgerSnapshot>? sub;
     late final StreamController<List<JournalEntry>> out;
-    out = StreamController<List<JournalEntry>>(
-      onListen: () {
-        final s = source = _ledgerSources.putIfAbsent(
+
+    void attach() {
+      final s = source = _ledgerSources.putIfAbsent(
+        businessId,
+        () => _JournalLedgerSource(
+          _ditto,
           businessId,
-          () => _JournalLedgerSource(
-            _ditto,
-            businessId,
-            _LedgerWriteHolds.of(_ditto),
-          ),
-        );
-        s.listeners++;
-        List<JournalEntry> pick(_JournalLedgerSnapshot snap) =>
-            snap.entriesIn(startDate: startDate, endDate: endDate);
-        sub = s.snapshots.listen(
-          (snap) => out.add(pick(snap)),
-          onError: out.addError,
-        );
-        final latest = s.latest;
-        if (latest != null) out.add(pick(latest));
-        s.start();
-        // A listener that attaches after a failed read would otherwise wait
-        // for the next change with neither data nor an error.
-        s.retryIfFailed();
+          _LedgerWriteHolds.of(_ditto),
+        ),
+      );
+      s.listeners++;
+      List<JournalEntry> pick(_JournalLedgerSnapshot snap) =>
+          snap.entriesIn(startDate: startDate, endDate: endDate);
+      sub = s.snapshots.listen(
+        (snap) => out.add(pick(snap)),
+        onError: out.addError,
+      );
+      final latest = s.latest;
+      if (latest != null) out.add(pick(latest));
+      s.start();
+      // A listener that attaches after a failed read would otherwise wait
+      // for the next change with neither data nor an error.
+      s.retryIfFailed();
+    }
+
+    // The bookkeeping is synchronous, so a resume right after a pause attaches
+    // to a fresh source rather than to one that is being disposed.
+    Future<void> detach() async {
+      final current = sub;
+      sub = null;
+      final s = source;
+      source = null;
+      final last = s != null && --s.listeners == 0;
+      if (last && identical(_ledgerSources[businessId], s)) {
+        _ledgerSources.remove(businessId);
+      }
+      await current?.cancel();
+      if (s != null && last) await s.dispose();
+    }
+
+    out = StreamController<List<JournalEntry>>(
+      onListen: attach,
+      // Books' providers are not auto-dispose: leaving Books only pauses
+      // them. A paused caller lets go of the journal like one that left, so
+      // the last one stops its observers and reads; otherwise every sale
+      // re-read the business's whole journal on the UI isolate off-screen,
+      // and the paused stream buffered each copy. Resuming reads afresh.
+      onPause: () => unawaited(detach()),
+      onResume: () {
+        if (source == null) attach();
       },
-      onCancel: () async {
-        await sub?.cancel();
-        final s = source;
-        source = null;
-        if (s != null && --s.listeners == 0) {
-          if (identical(_ledgerSources[businessId], s)) {
-            _ledgerSources.remove(businessId);
-          }
-          await s.dispose();
-        }
-      },
+      onCancel: detach,
     );
     return out.stream;
   }

@@ -1,5 +1,6 @@
 package rw.flipper
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
@@ -28,14 +29,13 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        // Firebase Test Lab (and so Play's pre-launch reports) sets this on its
-        // devices. Dart keeps those robots out of analytics.
+        // Raw signals of an automated test device (Play's pre-launch robots,
+        // Firebase Test Lab, device farms). Dart decides, and keeps those
+        // devices out of analytics.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_ENV_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "isTestLab" -> result.success(
-                        Settings.System.getString(contentResolver, "firebase.test.lab") == "true",
-                    )
+                    "environment" -> result.success(deviceEnvironment())
                     else -> result.notImplemented()
                 }
             }
@@ -121,6 +121,34 @@ class MainActivity : FlutterActivity() {
             }
     }
 
+    private fun deviceEnvironment(): Map<String, Any?> {
+        fun read(block: () -> Any?): Any? = try {
+            block()
+        } catch (e: Exception) {
+            null
+        }
+        return mapOf(
+            "testLabSystem" to read { Settings.System.getString(contentResolver, TEST_LAB_KEY) },
+            "testLabGlobal" to read { Settings.Global.getString(contentResolver, TEST_LAB_KEY) },
+            "testHarness" to read {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                    ActivityManager.isRunningInUserTestHarness()
+            },
+            "monkey" to read { ActivityManager.isUserAMonkey() },
+            "adbEnabled" to read {
+                Settings.Global.getInt(contentResolver, Settings.Global.ADB_ENABLED, 0) == 1
+            },
+            "installer" to read {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    packageManager.getInstallSourceInfo(packageName).installingPackageName
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageManager.getInstallerPackageName(packageName)
+                }
+            },
+        )
+    }
+
     private fun captureColdStartShortcut(intent: Intent?) {
         val page = intent?.getStringExtra(EXTRA_SHORTCUT_PAGE) ?: return
         MainActivity.storeColdShortcutPage(page)
@@ -137,6 +165,7 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "rw.flipper/app_shortcuts"
         private const val DEVICE_ENV_CHANNEL = "rw.flipper/device_env"
+        private const val TEST_LAB_KEY = "firebase.test.lab"
         private const val EXTRA_SHORTCUT_PAGE = "shortcut_page"
 
         @Volatile

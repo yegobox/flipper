@@ -1,5 +1,7 @@
 import 'package:flipper_accounting/statutory_accounts.dart';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
@@ -196,6 +198,8 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     if (!_canSubmit || _isSubmitting) return;
     final businessId = ref.read(accountingBusinessIdProvider);
     if (businessId.isEmpty) return;
+    // Read now: the panel may close while the entry saves.
+    final analytics = ref.read(optionalProductAnalyticsProvider);
 
     setState(() => _isSubmitting = true);
 
@@ -235,6 +239,11 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
         businessId: businessId,
         entry: entry,
         journalCode: 'misc',
+      );
+      trackExpenseRecorded(
+        surface: 'books',
+        categoryType: statutory?.name ?? 'account',
+        analytics: analytics,
       );
 
       if (mounted) {
