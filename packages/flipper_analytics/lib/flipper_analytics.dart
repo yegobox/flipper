@@ -5,6 +5,7 @@ export 'src/events/analytics_events.dart';
 export 'src/events/analytics_platform.dart';
 export 'src/events/analytics_properties.dart';
 export 'src/feature_usage.dart';
+export 'src/funnel_events.dart';
 export 'src/report_exception.dart';
 export 'src/session_identity.dart';
 export 'src/test_lab_detector.dart';

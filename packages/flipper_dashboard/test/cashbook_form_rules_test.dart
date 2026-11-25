@@ -1,5 +1,20 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Keeps each tracked event's name and properties.
+class _Tracked implements ProductAnalytics {
+  final events = <(String, Map<String, Object?>)>[];
+
+  @override
+  Future<void> track(
+    String eventName, {
+    Map<String, Object?> properties = const {},
+  }) async => events.add((eventName, properties));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 typedef _Cat = ({String id, String name});
 
@@ -332,5 +347,58 @@ void main() {
     expect(t.moneyIn, 3500);
     expect(t.moneyOut, 1200);
     expect(t.net, 2300);
+  });
+
+  group('cashbookExpenseCategoryType', () {
+    test('no category', () {
+      expect(cashbookExpenseCategoryType(null), 'none');
+      expect(cashbookExpenseCategoryType('  '), 'none');
+    });
+
+    test('a starter name, in any case', () {
+      expect(cashbookExpenseCategoryType('Rent'), 'suggested');
+      expect(cashbookExpenseCategoryType(' transport '), 'suggested');
+    });
+
+    test('a name the owner made up is custom, never sent as is', () {
+      expect(cashbookExpenseCategoryType('Paid Jean-Claude'), 'custom');
+    });
+  });
+
+  group('trackCashbookExpense', () {
+    test('a Cash Out sends expense_recorded without amount or name', () async {
+      final analytics = _Tracked();
+
+      trackCashbookExpense(
+        isIncome: false,
+        categoryName: 'Rent',
+        paymentMethod: cashbookMethodMtn,
+        analytics: analytics,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(analytics.events, hasLength(1));
+      expect(analytics.events.single.$1, 'expense_recorded');
+      expect(analytics.events.single.$2, {
+        'source': 'cashbook',
+        'surface': 'cashbook',
+        'category_type': 'suggested',
+        'payment_method': cashbookMethodMtn,
+      });
+    });
+
+    test('a Cash In is not an expense', () async {
+      final analytics = _Tracked();
+
+      trackCashbookExpense(
+        isIncome: true,
+        categoryName: 'Sales',
+        paymentMethod: cashbookMethodCash,
+        analytics: analytics,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(analytics.events, isEmpty);
+    });
   });
 }

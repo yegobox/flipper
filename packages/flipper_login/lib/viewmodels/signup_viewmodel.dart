@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/account_mode/account_mode.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,11 @@ import 'package:flipper_services/user_profile_name_service.dart';
 
 /// View model for handling signup business logic
 class SignupViewModel extends BaseViewModel {
+  /// [analytics] defaults to the app's instance; tests pass their own.
+  SignupViewModel({ProductAnalytics? analytics}) : _analytics = analytics;
+
+  final ProductAnalytics? _analytics;
+
   BuildContext? context;
   bool registerStart = false;
   String? name;
@@ -99,6 +105,19 @@ class SignupViewModel extends BaseViewModel {
       );
       if (localMode && business != null) {
         await LocalModeController.recordBusiness(business.id);
+      }
+      if (business != null) {
+        // The onboarding funnel's first step. Local mode has analytics off,
+        // so there it is dropped on the device.
+        trackSignupCompleted(
+          source: 'signup_view',
+          businessId: business.id,
+          businessTypeId: businessMap['businessTypeId'] as int,
+          country: country,
+          localMode: localMode,
+          accountMode: accountMode.value,
+          analytics: _analytics,
+        );
       }
 
       // The server creates the users row with a placeholder name, so the Admin

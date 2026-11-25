@@ -13,6 +13,7 @@ dependencies:
   flutter_form_bloc: 0.31.0-dev
   firebase_core: ^4.2.1
   flipper_services: any
+  flipper_analytics: any
   flipper_dashboard: any
   universal_platform: ^1.0.0+1
   country_code_picker: ^3.0.0
@@ -63,6 +64,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  supabase_models: any
 
 flutter:
   assets:

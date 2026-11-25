@@ -3,6 +3,7 @@
 /// [FlipperL10n.current] (English in tests).
 library;
 
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/payment_methods.dart';
@@ -108,6 +109,35 @@ List<String> get cashbookExpenseCategorySuggestions {
     l10n.cashbookSuggestLoanRepayment,
     l10n.cashbookSuggestLoanInterest,
   ];
+}
+
+/// What a Cash Out category is, for analytics: `none`, `suggested` (one of
+/// the starter names, in the app language) or `custom`. Never the name
+/// itself: owners name categories after people and suppliers.
+String cashbookExpenseCategoryType(String? categoryName) {
+  final name = categoryName?.trim().toLowerCase() ?? '';
+  if (name.isEmpty) return 'none';
+  final starter = cashbookExpenseCategorySuggestions.any(
+    (s) => s.toLowerCase() == name,
+  );
+  return starter ? 'suggested' : 'custom';
+}
+
+/// Sends `expense_recorded` for a saved Cash Out. Cash In is not an expense,
+/// so it sends nothing. No amount, and no category name.
+void trackCashbookExpense({
+  required bool isIncome,
+  required String? categoryName,
+  required String paymentMethod,
+  ProductAnalytics? analytics,
+}) {
+  if (isIncome) return;
+  trackExpenseRecorded(
+    surface: 'cashbook',
+    categoryType: cashbookExpenseCategoryType(categoryName),
+    paymentMethod: paymentMethod,
+    analytics: analytics,
+  );
 }
 
 /// Suggestions for the "New category" sheet, minus names the branch already
