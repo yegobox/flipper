@@ -47326,6 +47326,144 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'PIN only'**
   String get tenantMgmtPinOnly;
+
+  /// No description provided for @mcpConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect an AI client to Flipper'**
+  String get mcpConsentTitle;
+
+  /// No description provided for @mcpConsentSignInDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to review this client\'s read-only access request.'**
+  String get mcpConsentSignInDescription;
+
+  /// No description provided for @mcpConsentSignInButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Flipper'**
+  String get mcpConsentSignInButton;
+
+  /// No description provided for @mcpConsentRequestMissingId.
+  ///
+  /// In en, this message translates to:
+  /// **'This authorization request is missing its request ID.'**
+  String get mcpConsentRequestMissingId;
+
+  /// No description provided for @mcpConsentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorization unavailable'**
+  String get mcpConsentUnavailable;
+
+  /// No description provided for @mcpConsentTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get mcpConsentTryAgain;
+
+  /// No description provided for @mcpConsentLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not load this authorization request. Try again.'**
+  String get mcpConsentLoadFailed;
+
+  /// No description provided for @mcpConsentDecisionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not submit your decision. Try again.'**
+  String get mcpConsentDecisionFailed;
+
+  /// No description provided for @mcpConsentRedirectMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Supabase returned no authorization redirect URL.'**
+  String get mcpConsentRedirectMissing;
+
+  /// No description provided for @mcpConsentInvalidRedirect.
+  ///
+  /// In en, this message translates to:
+  /// **'The authorization server returned an invalid redirect.'**
+  String get mcpConsentInvalidRedirect;
+
+  /// No description provided for @mcpConsentRedirectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not open the MCP client redirect.'**
+  String get mcpConsentRedirectFailed;
+
+  /// No description provided for @mcpConsentAccessApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Access approved'**
+  String get mcpConsentAccessApproved;
+
+  /// No description provided for @mcpConsentAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied'**
+  String get mcpConsentAccessDenied;
+
+  /// No description provided for @mcpConsentReturnApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the AI client to finish connecting to Flipper.'**
+  String get mcpConsentReturnApproved;
+
+  /// No description provided for @mcpConsentReturnDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the AI client. It will not be connected to Flipper.'**
+  String get mcpConsentReturnDenied;
+
+  /// No description provided for @mcpConsentContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to AI client'**
+  String get mcpConsentContinue;
+
+  /// No description provided for @mcpConsentClientDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP client'**
+  String get mcpConsentClientDefault;
+
+  /// No description provided for @mcpConsentClientRedirectUri.
+  ///
+  /// In en, this message translates to:
+  /// **'Client redirect URI'**
+  String get mcpConsentClientRedirectUri;
+
+  /// No description provided for @mcpConsentRequestedScopes.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested identity scopes'**
+  String get mcpConsentRequestedScopes;
+
+  /// No description provided for @mcpConsentReadOnlyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This client can read the branches available to your Flipper account and completed transaction summaries for those branches. It cannot change Flipper data.'**
+  String get mcpConsentReadOnlyDescription;
+
+  /// No description provided for @mcpConsentAfterDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'After approving, return to the client to finish connecting. You can deny this request instead.'**
+  String get mcpConsentAfterDecision;
+
+  /// No description provided for @mcpConsentApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve read-only access'**
+  String get mcpConsentApprove;
+
+  /// No description provided for @mcpConsentDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get mcpConsentDeny;
 }
 
 class _FlipperAppLocalizationsDelegate
