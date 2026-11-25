@@ -64,13 +64,14 @@ PostHog also auto-captures (when enabled in `PostHogTransport`):
 | `flipper` | `main.dart` → `FlipperAnalytics.initialize` | Lifecycle + `product_active` |
 | `flipper_web` | `main.dart` → `FlipperAnalytics.initialize` | `PosthogObserver` on `GoRouter` + `product_active` |
 
-Windows desktop uses HTTP fallback in `PostHogTransport` (no native SDK); events still reach PostHog.
+Windows and Linux use the SDK's own desktop client (posthog_flutter 5.55+), like every other platform.
 
 ## Local development
 
 - Project token: `AppSecrets.postHogProjectToken` / `POSTHOG_API_KEY` in native builds.
 - Debug builds set `build_mode: debug` on every event — filter or exclude in PostHog when analysing production usage.
-- Events queue offline (`OfflineFirstAnalytics` + local store) and flush on connectivity / every 5 minutes.
+- Events go straight to the SDK, which stamps them and keeps its own offline queue. `OfflineFirstAnalytics` queues an event in the local store only when that fails (web, before posthog-js loads; older builds' leftovers) and flushes on connectivity / every 5 minutes.
+- PostHog's `timestamp` on a flushed event is the flush, not the event: the SDK cannot be given another time. Those events carry `captured_at` (when it happened, ISO UTC) and `queued_ms`, so time-based queries should use `captured_at` when it is set (HogQL: `coalesce(parseDateTimeBestEffortOrNull(properties.captured_at), timestamp)`), or leave out events that have `queued_ms`.
 
 ## Duplicate dashboard (optional)
 

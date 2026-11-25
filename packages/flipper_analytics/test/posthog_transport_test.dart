@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_analytics/src/web/posthog_js_host.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
@@ -428,9 +429,34 @@ void main() {
       () => posthog.captureException(
         error: error,
         stackTrace: stack,
-        properties: {'error_type': 'caught'},
+        properties: {r'$os': 'Android', 'error_type': 'caught'},
       ),
     ).called(1);
+  });
+
+  test(r'a native exception carries the $os other events get', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    await transport().captureException(StateError('boom'));
+
+    final properties = verify(
+      () => posthog.captureException(
+        error: any(named: 'error'),
+        stackTrace: any(named: 'stackTrace'),
+        properties: captureAny(named: 'properties'),
+      ),
+    ).captured.single;
+    expect(properties, {r'$os': 'Windows'});
+  });
+
+  test(r'$os names each native platform as its SDK does', () {
+    expect(PostHogTransport.osNameFor(TargetPlatform.android), 'Android');
+    expect(PostHogTransport.osNameFor(TargetPlatform.iOS), 'iOS');
+    expect(PostHogTransport.osNameFor(TargetPlatform.macOS), 'macOS');
+    expect(PostHogTransport.osNameFor(TargetPlatform.windows), 'Windows');
+    expect(PostHogTransport.osNameFor(TargetPlatform.linux), 'Linux');
+    expect(PostHogTransport.osNameFor(TargetPlatform.fuchsia), isNull);
   });
 
   test('sensitive keys are masked at every depth', () {
@@ -526,15 +552,18 @@ void main() {
 
       await t.captureException(StateError('mail ann@shop.rw'));
 
-      final sent = verify(
+      final captured = verify(
         () => posthog.captureException(
           error: captureAny(named: 'error'),
           stackTrace: any(named: 'stackTrace'),
-          properties: any(named: 'properties'),
+          properties: captureAny(named: 'properties'),
         ),
-      ).captured.single;
+      ).captured;
+      final sent = captured.first;
       expect(sent, isA<ScrubbedError>());
       expect(sent.toString(), 'Bad state: mail [email]');
+      // posthog-js sets `$os` itself.
+      expect(captured.last, isNot(contains(r'$os')));
     });
   });
 
