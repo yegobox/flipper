@@ -8973,7 +8973,7 @@
     "branchLocationSet": "Shyiraho aho riherereye",
     "branchLocationClear": "Kuraho ikimenyetso",
     "branchLocationMissing": "Nta hantu ku ikarita harashyirwaho",
-    "branchLocationUnavailable": "Ntibyashobotse kubona aho uri. Fungura igenamiterere, ufungure location accuracy (Wi-Fi na murandasi ya telefoni), hanyuma ugaruke. Flipper izongera igerageze.",
+    "branchLocationUnavailable": "Ntibyashobotse kubona aho uri. Fungura igenamiterere, ufungure location accuracy (Wi-Fi na murandasi ya telefoni), hanyuma ugaruke mu minota 10: Flipper izongera igerageze.",
     "branchLocationSaved": "Aho ishami riherereye habitswe",
     "branchLocationSaveFailed": "Ntibyashobotse kubika aho ishami riherereye",
     "branchLocationPromptTitle": "{branch} iherereye he?",

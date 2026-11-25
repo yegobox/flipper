@@ -150,6 +150,11 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
   /// default view of Kigali can never be saved by accident.
   late bool _chosen = widget.initial != null;
 
+  /// Counts the times the user put the pin somewhere (drag, tap, search).
+  /// Unlike [_chosen], a GPS fix never bumps it, so a position that arrives
+  /// late can tell whether the user placed the pin while it was on the way.
+  int _handPlacements = 0;
+
   /// The map is being dragged; the pin lifts while it is.
   bool _moving = false;
   Timer? _settleTimer;
@@ -206,6 +211,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
     _settleTimer = Timer(const Duration(milliseconds: 250), () {
       if (mounted) setState(() => _moving = false);
     });
+    _handPlacements++;
     setState(() {
       _chosen = true;
       _moving = true;
@@ -213,6 +219,12 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _results = null;
     });
     _scheduleLookup();
+  }
+
+  /// The user picked [point] (map tap or search result).
+  void _placeByHand(LatLng point, {double zoom = 17, String? address}) {
+    _handPlacements++;
+    _moveTo(point, zoom: zoom, address: address);
   }
 
   void _moveTo(LatLng point, {double zoom = 17, String? address}) {
@@ -267,6 +279,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _locating = true;
       _failure = null;
     });
+    final placementsBefore = _handPlacements;
     final outcome = await widget.location.currentPosition();
     if (!mounted) return;
     setState(() {
@@ -280,6 +293,8 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
       _gpsFix = fix;
       _gpsAccuracy = accuracy;
     });
+    // The user placed the pin while the fix was on the way: keep their pin.
+    if (_handPlacements != placementsBefore) return;
     // A coarse fix gets a wider view so its circle fits on screen.
     _moveTo(fix, zoom: (accuracy ?? 0) > maxBranchFixAccuracy ? 15 : 18);
   }
@@ -288,9 +303,12 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
   /// reads the position again unless they placed the pin by hand meanwhile.
   Future<void> _openSettings(LocationFailure failure) async {
     _cancelResumeRetry?.call();
+    final placementsBefore = _handPlacements;
     _cancelResumeRetry = onNextAppResume(() {
       _cancelResumeRetry = null;
-      if (mounted && !_chosen) unawaited(_useCurrentLocation());
+      if (mounted && _handPlacements == placementsBefore) {
+        unawaited(_useCurrentLocation());
+      }
     });
     final opened = await widget.location.openSettingsFor(failure);
     if (!opened) {
@@ -376,7 +394,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
                         }),
                         onPick: (place) {
                           _queryFocus.unfocus();
-                          _moveTo(
+                          _placeByHand(
                             LatLng(place.latitude, place.longitude),
                             address: place.label,
                           );
@@ -409,7 +427,7 @@ class _BranchLocationPickerState extends State<_BranchLocationPicker> {
         ),
         onPositionChanged: _onPositionChanged,
         // Tapping a spot brings it under the pin.
-        onTap: (_, point) => _moveTo(point, zoom: _map.camera.zoom),
+        onTap: (_, point) => _placeByHand(point, zoom: _map.camera.zoom),
       ),
       children: [
         if (widget.loadTiles)

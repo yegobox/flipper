@@ -7388,7 +7388,7 @@
     "branchLocationSet": "Définir l'emplacement",
     "branchLocationClear": "Retirer l'épingle",
     "branchLocationMissing": "Pas encore d'emplacement sur la carte",
-    "branchLocationUnavailable": "Impossible d'obtenir votre position. Ouvrez les paramètres, activez la précision de la localisation (Wi-Fi et réseau mobile), puis revenez. Flipper réessaiera.",
+    "branchLocationUnavailable": "Impossible d'obtenir votre position. Ouvrez les paramètres, activez la précision de la localisation (Wi-Fi et réseau mobile), puis revenez dans les 10 minutes : Flipper réessaiera.",
     "branchLocationSaved": "Emplacement de la succursale enregistré",
     "branchLocationSaveFailed": "Impossible d'enregistrer l'emplacement de la succursale",
     "branchLocationPromptTitle": "Où se trouve {branch} ?",

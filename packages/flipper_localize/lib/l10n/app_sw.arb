@@ -8981,7 +8981,7 @@
     "branchLocationSet": "Weka mahali",
     "branchLocationClear": "Ondoa alama",
     "branchLocationMissing": "Bado hakuna mahali kwenye ramani",
-    "branchLocationUnavailable": "Imeshindwa kupata mahali ulipo. Fungua mipangilio, washa usahihi wa eneo (Wi-Fi na mtandao wa simu), kisha urudi. Flipper itajaribu tena.",
+    "branchLocationUnavailable": "Imeshindwa kupata mahali ulipo. Fungua mipangilio, washa usahihi wa eneo (Wi-Fi na mtandao wa simu), kisha urudi ndani ya dakika 10: Flipper itajaribu tena.",
     "branchLocationSaved": "Mahali pa tawi pamehifadhiwa",
     "branchLocationSaveFailed": "Imeshindwa kuhifadhi mahali pa tawi",
     "branchLocationPromptTitle": "{branch} iko wapi?",

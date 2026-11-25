@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/branch_location/branch_location_picker.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/abstractions/location.dart';
@@ -99,6 +101,21 @@ FilledButton _saveButton(WidgetTester tester) => tester.widget<FilledButton>(
     matching: find.byWidgetPredicate((w) => w is FilledButton),
   ),
 );
+
+/// The user leaves for the settings app and comes back.
+Future<void> _backFromSettings(WidgetTester tester) async {
+  for (final state in const [
+    AppLifecycleState.inactive,
+    AppLifecycleState.hidden,
+    AppLifecycleState.paused,
+    AppLifecycleState.hidden,
+    AppLifecycleState.inactive,
+    AppLifecycleState.resumed,
+  ]) {
+    tester.binding.handleAppLifecycleStateChanged(state);
+  }
+  await tester.pumpAndSettle();
+}
 
 void main() {
   setUpAll(() {
@@ -246,6 +263,91 @@ void main() {
     expect(calls, 2);
     expect(find.textContaining("Couldn't get your location"), findsNothing);
     expect(find.textContaining('Accurate to about 12 m'), findsOneWidget);
+  });
+
+  testWidgets('a pin placed while the fix is on the way is kept', (
+    tester,
+  ) async {
+    final location = _location();
+    final pending = Completer<LocationOutcome>();
+    when(
+      () => location.currentPosition(timeout: any(named: 'timeout')),
+    ).thenAnswer((_) => pending.future);
+    final result = await _open(tester, location: location);
+
+    await tester.tap(find.byKey(const Key('branchLocationLocate')));
+    await tester.pump();
+
+    // The user searches and picks a place before GPS answers. The locating
+    // spinner never settles while the read is pending, so pump fixed steps.
+    await tester.enterText(find.byType(TextField), 'kimironko market');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Kimironko Market, KG 11 Ave, Kimironko'));
+    await tester.pump(const Duration(seconds: 2));
+
+    pending.complete(_fix);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save location'));
+    await tester.pumpAndSettle();
+    expect(result()!.latitude, closeTo(-1.95, 1e-6));
+    expect(result()!.longitude, closeTo(30.126, 1e-6));
+  });
+
+  testWidgets('an automatic GPS pin still allows a retry after settings', (
+    tester,
+  ) async {
+    final location = _location(allowed: true);
+    var calls = 0;
+    when(
+      () => location.currentPosition(timeout: any(named: 'timeout')),
+    ).thenAnswer(
+      (_) async => switch (calls++) {
+        1 => const LocationOutcome.failed(LocationFailure.unavailable),
+        _ => _fix,
+      },
+    );
+    // Opens on the GPS fix (permission already given): a pin, not by hand.
+    await _open(tester, location: location);
+    expect(calls, 1);
+
+    await tester.tap(find.byKey(const Key('branchLocationLocate')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Couldn't get your location"), findsOneWidget);
+    await tester.tap(find.text('Open settings'));
+    await tester.pumpAndSettle();
+
+    await _backFromSettings(tester);
+    expect(calls, 3);
+    expect(find.textContaining("Couldn't get your location"), findsNothing);
+  });
+
+  testWidgets('no retry after settings if the user placed the pin meanwhile', (
+    tester,
+  ) async {
+    final location = _location();
+    var calls = 0;
+    when(
+      () => location.currentPosition(timeout: any(named: 'timeout')),
+    ).thenAnswer((_) async {
+      calls++;
+      return const LocationOutcome.failed(LocationFailure.unavailable);
+    });
+    await _open(tester, location: location);
+    await tester.tap(find.byKey(const Key('branchLocationLocate')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open settings'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'kimironko market');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kimironko Market, KG 11 Ave, Kimironko'));
+    await tester.pumpAndSettle();
+
+    await _backFromSettings(tester);
+    expect(calls, 1);
   });
 
   group('onNextAppResume', () {

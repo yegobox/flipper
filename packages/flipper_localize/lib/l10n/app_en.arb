@@ -19988,7 +19988,7 @@
     "branchLocationSet": "Set location",
     "branchLocationClear": "Remove pin",
     "branchLocationMissing": "No map location yet",
-    "branchLocationUnavailable": "Couldn't get your location. Open settings, turn on location accuracy (Wi-Fi and mobile network), then come back. Flipper will try again.",
+    "branchLocationUnavailable": "Couldn't get your location. Open settings, turn on location accuracy (Wi-Fi and mobile network), and come back within 10 minutes: Flipper will try again.",
     "branchLocationSaved": "Branch location saved",
     "branchLocationSaveFailed": "Couldn't save the branch location",
     "branchLocationPromptTitle": "Where is {branch}?",
