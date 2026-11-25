@@ -522,5 +522,71 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       expect(store.queriesOf('journal_entries', 'businessId'), 1);
     });
+
+    // Books' providers are not auto-dispose, so leaving Books pauses them
+    // (Riverpod 3) instead of cancelling. A paused caller must not keep the
+    // journal's observers and reads running off-screen.
+    test(
+      'a paused caller stops the reads until it resumes, buffering nothing',
+      () async {
+        final store = _seed(entries: 20, orphans: 0);
+        final repo = DittoAccountingLedgerRepository(store);
+        final emitted = <List<JournalEntry>>[];
+        final sub = repo
+            .watchJournalEntries(businessId: _biz)
+            .listen(emitted.add);
+        await pumpEventQueue();
+        expect(emitted, hasLength(1));
+
+        sub.pause();
+        await pumpEventQueue();
+        expect(repo.ledgerSourceCount, 0);
+        expect(store.activeChangeFeeds, 0);
+
+        // A day of sales on the POS while Books is closed.
+        for (var i = 0; i < 20; i++) {
+          store.notifyChange('journal_entries');
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(store.queriesOf('journal_entries', 'businessId'), 1);
+
+        sub.resume();
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(store.activeChangeFeeds, 2);
+        expect(store.queriesOf('journal_entries', 'businessId'), 2);
+        // Only the fresh read arrives: nothing piled up while paused.
+        expect(emitted, hasLength(2));
+        await sub.cancel();
+        expect(repo.ledgerSourceCount, 0);
+      },
+    );
+
+    test('a paused caller leaves the source to callers still watching, and '
+        'gets the latest journal at once on resume', () async {
+      final store = _seed(entries: 20, orphans: 0);
+      final repo = DittoAccountingLedgerRepository(store);
+      final paused = <List<JournalEntry>>[];
+      final hidden = repo
+          .watchJournalEntries(businessId: _biz)
+          .listen(paused.add);
+      final visible = repo.watchJournalEntries(businessId: _biz).listen((_) {});
+      await pumpEventQueue();
+
+      hidden.pause();
+      await pumpEventQueue();
+      expect(repo.ledgerSourceCount, 1);
+      expect(store.activeChangeFeeds, 2);
+
+      hidden.resume();
+      await pumpEventQueue();
+      // Served from the shared source without another read.
+      expect(store.queriesOf('journal_entries', 'businessId'), 1);
+      expect(paused, hasLength(2));
+
+      await hidden.cancel();
+      await visible.cancel();
+      expect(repo.ledgerSourceCount, 0);
+      expect(store.activeChangeFeeds, 0);
+    });
   });
 }
