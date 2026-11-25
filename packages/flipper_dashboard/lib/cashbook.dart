@@ -114,7 +114,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       // Notifier updates are not allowed during dispose (same constraint as build);
       // popping this route runs dispose while the tree may still be settling.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        container.read(personalGoalCashInIntentProvider.notifier).clear();
+        try {
+          container.read(personalGoalCashInIntentProvider.notifier).clear();
+        } on StateError {
+          // Root container already disposed (app teardown); nothing to clear.
+        }
       });
     }
     _amountController.dispose();
