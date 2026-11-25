@@ -187,9 +187,25 @@ class PostHogTransport implements AnalyticsTransport {
       // beforeSend, which scrubs it there.
       error: _isWeb ? ScrubbedError(error) : error,
       stackTrace: stackTrace,
-      properties: _compact(properties),
+      properties: _compact({
+        // The native SDKs send `$os_name`, which PostHog turns into `$os`
+        // for other events but not for `$exception`; posthog-js sets it.
+        if (!_isWeb) r'$os': osNameFor(defaultTargetPlatform),
+        ...properties,
+      }),
     ),
   );
+
+  /// The `$os` the native SDKs report as `$os_name` on [platform].
+  @visibleForTesting
+  static String? osNameFor(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.android => 'Android',
+    TargetPlatform.iOS => 'iOS',
+    TargetPlatform.macOS => 'macOS',
+    TargetPlatform.windows => 'Windows',
+    TargetPlatform.linux => 'Linux',
+    TargetPlatform.fuchsia => null,
+  };
 
   @override
   Future<void> flush() => _posthog.flush();

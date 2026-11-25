@@ -64,13 +64,14 @@ PostHog also auto-captures (when enabled in `PostHogTransport`):
 | `flipper` | `main.dart` → `FlipperAnalytics.initialize` | Lifecycle + `product_active` |
 | `flipper_web` | `main.dart` → `FlipperAnalytics.initialize` | `PosthogObserver` on `GoRouter` + `product_active` |
 
-Windows desktop uses HTTP fallback in `PostHogTransport` (no native SDK); events still reach PostHog.
+Windows and Linux use the SDK's own desktop client (posthog_flutter 5.55+), like every other platform.
 
 ## Local development
 
 - Project token: `AppSecrets.postHogProjectToken` / `POSTHOG_API_KEY` in native builds.
 - Debug builds set `build_mode: debug` on every event — filter or exclude in PostHog when analysing production usage.
-- Events queue offline (`OfflineFirstAnalytics` + local store) and flush on connectivity / every 5 minutes.
+- Events go straight to the SDK, which stamps them and keeps its own offline queue. `OfflineFirstAnalytics` queues an event in the local store only when that fails (web, before posthog-js loads; older builds' leftovers) and flushes on connectivity / every 5 minutes.
+- PostHog's `timestamp` on a flushed event is the flush, not the event: the SDK cannot be given another time. Those events carry `queued_ms` (how long they waited) and `captured_at` (when the till's own clock says it happened, ISO UTC). Time-based queries should subtract `queued_ms` from `timestamp` (HogQL: `fromUnixTimestamp64Milli(toUnixTimestamp64Milli(timestamp) - coalesce(toInt64OrNull(toString(properties.queued_ms)), 0))`; HogQL has no millisecond interval), or leave out events that have `queued_ms`. PostHog corrects `timestamp` for the device's clock skew and both ends of `queued_ms` come from the same clock, whereas `captured_at` is uncorrected, so a till with a wrong clock puts it hours off. Use `captured_at` only for display.
 
 ## Duplicate dashboard (optional)
 
