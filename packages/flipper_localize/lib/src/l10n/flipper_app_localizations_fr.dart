@@ -21703,15 +21703,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get floSuggestOweQuestion => 'À qui devons-nous de l\'argent ?';
 
   @override
-  String get floSuggestTrendTitle => 'Tendance des ventes de la semaine';
+  String get floSuggestTrendTitle => 'Comment me développer ?';
 
   @override
-  String get floSuggestTrendDesc =>
-      'Évolution du chiffre d\'affaires sur 7 jours';
+  String get floSuggestTrendDesc => 'Actions à mener cette semaine';
 
   @override
   String get floSuggestTrendQuestion =>
-      'Montre la tendance des ventes de cette semaine';
+      'Comment développer mon business cette semaine ?';
 
   @override
   String get floGoodMorning => 'Bonjour';

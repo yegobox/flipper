@@ -35459,19 +35459,19 @@ abstract class FlipperAppLocalizations {
   /// No description provided for @floSuggestTrendTitle.
   ///
   /// In en, this message translates to:
-  /// **'This week\'s sales trend'**
+  /// **'How can I grow?'**
   String get floSuggestTrendTitle;
 
   /// No description provided for @floSuggestTrendDesc.
   ///
   /// In en, this message translates to:
-  /// **'7-day revenue movement'**
+  /// **'Actions to take this week'**
   String get floSuggestTrendDesc;
 
   /// No description provided for @floSuggestTrendQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Show this week\'s sales trend'**
+  /// **'How can I grow my business this week?'**
   String get floSuggestTrendQuestion;
 
   /// No description provided for @floGoodMorning.
