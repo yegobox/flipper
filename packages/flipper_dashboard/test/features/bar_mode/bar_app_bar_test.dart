@@ -4,6 +4,9 @@
 // button lands where the hand-built headers used to: Settle → the tab,
 // the tab on a phone → the floor, Credit → the floor.
 
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_credit_screen.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_pos_mobile.dart';
@@ -17,6 +20,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FontLoader;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -90,18 +94,54 @@ class _RecordingBar extends BarModeNotifier {
   }
 }
 
-/// The test font draws every glyph a full em wide, so the desk's payment
-/// panel (untouched here) overflows by a few pixels. Only those overflow
-/// reports are dropped; any other error still fails the test.
-void _ignorePanelOverflow() {
-  final original = FlutterError.onError;
-  FlutterError.onError = (details) {
-    if (details.exceptionAsString().contains('A RenderFlex overflowed')) {
-      return;
+/// The default test font draws every glyph as a full square, which makes
+/// text several times wider than it is, so the desk's payment panel would
+/// overflow. Load the fonts the screens really use (Outfit and JetBrains
+/// Mono through google_fonts, Roboto for Material defaults); widths then
+/// mean something, and any overflow, the new header's included, fails.
+Future<void> _loadRealFonts() async {
+  GoogleFonts.config.allowRuntimeFetching = false;
+  final root =
+      Platform.environment['FLUTTER_ROOT'] ??
+      File(
+        Platform.resolvedExecutable,
+      ).parent.parent.parent.parent.parent.parent.path;
+  Future<void> load(String family, Iterable<String> paths) async {
+    final loader = FontLoader(family);
+    for (final path in paths) {
+      final bytes = File(path).readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
     }
-    original?.call(details);
-  };
-  addTearDown(() => FlutterError.onError = original);
+    await loader.load();
+  }
+
+  final material = '$root/bin/cache/artifacts/material_fonts';
+  await load('Roboto', [
+    for (final w in ['Regular', 'Medium', 'Bold']) '$material/Roboto-$w.ttf',
+  ]);
+  await load('MaterialIcons', ['$material/MaterialIcons-Regular.otf']);
+
+  // google_fonts asks for one family per weight ("Outfit_700"); the bundled
+  // files are the app's own (apps/flipper/google_fonts).
+  const bundled = '../../apps/flipper/google_fonts';
+  const weights = [
+    (FontWeight.w100, 'Thin'),
+    (FontWeight.w200, 'ExtraLight'),
+    (FontWeight.w300, 'Light'),
+    (FontWeight.w400, 'Regular'),
+    (FontWeight.w500, 'Medium'),
+    (FontWeight.w600, 'SemiBold'),
+    (FontWeight.w700, 'Bold'),
+    (FontWeight.w800, 'ExtraBold'),
+  ];
+  for (final (weight, name) in weights) {
+    await load(GoogleFonts.outfit(fontWeight: weight).fontFamily!, [
+      '$bundled/Outfit-$name.ttf',
+    ]);
+    await load(GoogleFonts.jetBrainsMono(fontWeight: weight).fontFamily!, [
+      '$bundled/JetBrainsMono-$name.ttf',
+    ]);
+  }
 }
 
 void _useView(WidgetTester tester, Size size) {
@@ -118,7 +158,6 @@ Future<_RecordingBar> _pump(
   String? cashierName = 'Richard Mugisha',
   List<ITransaction> loans = const [],
 }) async {
-  if (size == _desk) _ignorePanelOverflow();
   _useView(tester, size);
   final bar = _RecordingBar(
     BarModeState(
@@ -151,6 +190,7 @@ Future<_RecordingBar> _pump(
         hotelRoomChargeAvailableProvider.overrideWithValue(false),
       ],
       child: MaterialApp(
+        theme: ThemeData(fontFamily: 'Roboto'),
         localizationsDelegates: FlipperLocalizationDelegates.delegates,
         supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(body: screen),
@@ -173,9 +213,9 @@ Future<void> _tapBack(WidgetTester tester, String barKey) async {
 }
 
 void main() {
-  setUpAll(() {
-    GoogleFonts.config.allowRuntimeFetching = false;
+  setUpAll(() async {
     registerFallbackValue(Strategy.capella);
+    await _loadRealFonts();
   });
 
   setUp(() async {
