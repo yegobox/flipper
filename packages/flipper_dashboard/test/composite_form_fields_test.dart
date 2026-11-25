@@ -105,6 +105,11 @@ void main() {
         find.descendant(of: inputs.at(0), matching: find.byType(TextField)),
       );
       expect(skuField.textCapitalization, TextCapitalization.characters);
+
+      // Upper-cased as typed on a hardware keyboard too, not just a hint.
+      await tester.enterText(inputs.at(0), 'bev-1');
+      await tester.pump();
+      expect(sku.text, 'BEV-1');
     });
 
     testWidgets('no branch shows the no-branch message', (tester) async {
@@ -201,7 +206,7 @@ void main() {
 
       await tester.pumpWidget(
         _app(
-          CompositeVariation(supplyPriceController: supply),
+          CompositeVariation(supplyPriceController: supply, currency: 'KES'),
           container: container,
         ),
       );
@@ -213,7 +218,9 @@ void main() {
       final soda = state.lineControllers['soda']!;
       expect(soda.quantity.text, '1');
       expect(soda.cost.text, '300');
-      expect(find.text('RWF'), findsNWidgets(2));
+      // Each line's cost wears the business currency, not a fixed RWF.
+      expect(find.text('KES'), findsNWidgets(2));
+      expect(find.text('RWF'), findsNothing);
 
       // A half-typed quantity survives the rebuild its own edit causes.
       await tester.enterText(

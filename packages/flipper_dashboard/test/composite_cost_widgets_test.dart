@@ -4,6 +4,8 @@
 // their selling prices: picking a component in search carries its supply
 // price, and the combo form totals supply price × quantity.
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -16,6 +18,7 @@ import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/product_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,7 +91,10 @@ void main() {
     addTearDown(supply.dispose);
 
     await tester.pumpWidget(
-      _app(container, CompositeVariation(supplyPriceController: supply)),
+      _app(
+        container,
+        CompositeVariation(supplyPriceController: supply, currency: 'KES'),
+      ),
     );
     await tester.pump();
 
@@ -127,6 +133,9 @@ void main() {
           taxTyCds: any(named: 'taxTyCds'),
           name: any(named: 'name'),
           branchId: any(named: 'branchId'),
+          page: any(named: 'page'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          countTotal: any(named: 'countTotal'),
         ),
       ).thenAnswer(
         (_) async => PagedVariants(
@@ -148,6 +157,7 @@ void main() {
 
       await tester.pumpWidget(_app(container, const SearchProduct()));
       await tester.enterText(find.byType(TextField), 'soda');
+      await tester.pump(searchProductDebounce);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Soda 50cl'));
       await tester.pumpAndSettle();
@@ -155,6 +165,157 @@ void main() {
       final picked = container.read(selectedVariantsLocalProvider).single;
       expect(picked.variant.supplyPrice, 300);
       expect(picked.cost, 300);
+    });
+
+    Variant hit(String id, {String? name}) => Variant(
+      id: id,
+      name: name ?? id,
+      productName: 'P',
+      productId: 'p-$id',
+      branchId: 'b1',
+      retailPrice: 100,
+      supplyPrice: 50,
+    );
+
+    void answer(Future<PagedVariants> Function(String name) reply) {
+      when(
+        () => db.variants(
+          taxTyCds: any(named: 'taxTyCds'),
+          name: any(named: 'name'),
+          branchId: any(named: 'branchId'),
+          page: any(named: 'page'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          countTotal: any(named: 'countTotal'),
+        ),
+      ).thenAnswer((inv) => reply(inv.namedArguments[#name] as String));
+    }
+
+    testWidgets('waits for typing to pause, then asks once, capped', (
+      tester,
+    ) async {
+      answer(
+        (_) async => PagedVariants(
+          variants: [for (var i = 0; i < 30; i++) hit('Item $i')],
+        ),
+      );
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(_app(container, const SearchProduct()));
+
+      for (final typed in ['s', 'so', 'sod', 'soda']) {
+        await tester.enterText(find.byType(TextField), typed);
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      verifyNever(
+        () => db.variants(
+          taxTyCds: any(named: 'taxTyCds'),
+          name: any(named: 'name'),
+          branchId: any(named: 'branchId'),
+          page: any(named: 'page'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          countTotal: any(named: 'countTotal'),
+        ),
+      );
+      await tester.pump(searchProductDebounce);
+      await tester.pump();
+
+      verify(
+        () => db.variants(
+          taxTyCds: any(named: 'taxTyCds'),
+          name: 'soda',
+          branchId: 'b1',
+          page: 0,
+          itemsPerPage: searchProductResultLimit,
+          countTotal: false,
+        ),
+      ).called(1);
+      // Even a store that ignores the page size lists no more than the cap.
+      expect(
+        find.textContaining('Item '),
+        findsNWidgets(searchProductResultLimit),
+      );
+
+      // Clearing the box clears the list without asking again.
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump(searchProductDebounce);
+      expect(find.textContaining('Item '), findsNothing);
+    });
+
+    testWidgets('a slower, older answer cannot overwrite a newer one', (
+      tester,
+    ) async {
+      final slow = Completer<PagedVariants>();
+      answer(
+        (name) => name == 'old'
+            ? slow.future
+            : Future.value(PagedVariants(variants: [hit('Newer')])),
+      );
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(_app(container, const SearchProduct()));
+
+      await tester.enterText(find.byType(TextField), 'old');
+      await tester.pump(searchProductDebounce);
+      await tester.enterText(find.byType(TextField), 'new');
+      await tester.pump(searchProductDebounce);
+      await tester.pump();
+      expect(find.text('Newer'), findsOneWidget);
+
+      slow.complete(PagedVariants(variants: [hit('Older')]));
+      await tester.pump();
+      expect(find.text('Older'), findsNothing);
+      expect(find.text('Newer'), findsOneWidget);
+    });
+
+    testWidgets('an answer after the search is gone is dropped', (
+      tester,
+    ) async {
+      final slow = Completer<PagedVariants>();
+      answer((_) => slow.future);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(_app(container, const SearchProduct()));
+
+      await tester.enterText(find.byType(TextField), 'soda');
+      await tester.pump(searchProductDebounce);
+      await tester.pumpWidget(const SizedBox());
+      slow.complete(PagedVariants(variants: [hit('Late')]));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('leaving before the pause ends never queries', (tester) async {
+      answer((_) async => PagedVariants(variants: [hit('Soda')]));
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(_app(container, const SearchProduct()));
+
+      await tester.enterText(find.byType(TextField), 'soda');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(searchProductDebounce);
+      verifyNever(
+        () => db.variants(
+          taxTyCds: any(named: 'taxTyCds'),
+          name: any(named: 'name'),
+          branchId: any(named: 'branchId'),
+          page: any(named: 'page'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          countTotal: any(named: 'countTotal'),
+        ),
+      );
+    });
+
+    testWidgets('no branch, no query', (tester) async {
+      when(() => ProxyService.box.getBranchId()).thenReturn(null);
+      answer((_) async => PagedVariants(variants: [hit('Soda')]));
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(_app(container, const SearchProduct()));
+
+      await tester.enterText(find.byType(TextField), 'soda');
+      await tester.pump(searchProductDebounce);
+      await tester.pump();
+      expect(find.text('Soda'), findsNothing);
     });
   });
 }

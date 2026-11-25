@@ -3,12 +3,21 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// A combo's SKU and bar code, styled like the rest of the product editor.
 ///
 /// The bar code is validated by the editor's own [Form] (there is no nested
 /// form here), so Save stays blocked while it is empty.
+/// Upper-cases a SKU as it is typed, on any keyboard.
+final skuUpperCaseFormatter = TextInputFormatter.withFunction(
+  (oldValue, newValue) => newValue.copyWith(
+    text: newValue.text.toUpperCase(),
+    selection: newValue.selection,
+  ),
+);
+
 class Fieldcompositeactivated extends StatefulHookConsumerWidget {
   const Fieldcompositeactivated({
     Key? key,
@@ -55,6 +64,9 @@ class FieldcompositeactivatedState
               mono: true,
               textInputAction: TextInputAction.next,
               textCapitalization: TextCapitalization.characters,
+              // The capitalization above is only a soft-keyboard hint; a
+              // hardware keyboard on the desk types lowercase.
+              inputFormatters: [skuUpperCaseFormatter],
             ),
           ),
         ),

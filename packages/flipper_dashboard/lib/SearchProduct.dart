@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -11,6 +13,12 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:stacked/stacked.dart';
+
+/// How long typing must pause before the component search queries.
+const searchProductDebounce = Duration(milliseconds: 300);
+
+/// The most matches the component search lists; refine the query for more.
+const searchProductResultLimit = 20;
 
 class SearchProduct extends StatefulHookConsumerWidget {
   const SearchProduct({Key? key, this.transaction}) : super(key: key);
@@ -32,6 +40,31 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
 
   List<Variant> _searchResults = [];
 
+  /// Waits for typing to pause before querying, so a word is one query, not
+  /// one per keystroke.
+  Timer? _debounce;
+
+  /// Bumped by every new query (and by a pick), so a slower, older answer
+  /// cannot overwrite a newer one.
+  int _querySeq = 0;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onQueryChanged(String searchKey) {
+    _debounce?.cancel();
+    final seq = ++_querySeq;
+    if (searchKey.trim().isEmpty) {
+      setState(() => _searchResults = []);
+      return;
+    }
+    _debounce = Timer(searchProductDebounce, () => _search(searchKey, seq));
+  }
+
   String _productTypeLabel(FlipperAppLocalizations l10n, String value) {
     switch (value) {
       case 'Favorites':
@@ -45,21 +78,23 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
     }
   }
 
-  Future<void> _search(String searchKey) async {
-    if (searchKey.isEmpty) {
-      setState(() {
-        _searchResults = [];
-      });
-      return;
-    }
+  Future<void> _search(String searchKey, int seq) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
     final paged = await ProxyService.strategy.variants(
       taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       name: searchKey,
-      branchId: ProxyService.box.getBranchId()!,
+      branchId: branchId,
+      page: 0,
+      itemsPerPage: searchProductResultLimit,
+      countTotal: false,
     );
-    List<Variant> variants = List<Variant>.from(paged.variants);
+    // Gone, or overtaken by a newer query or a pick while this one ran.
+    if (!mounted || seq != _querySeq) return;
     setState(() {
-      _searchResults = variants.isNotEmpty ? variants : [];
+      _searchResults = List<Variant>.from(
+        paged.variants.take(searchProductResultLimit),
+      );
     });
   }
 
@@ -77,6 +112,8 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
           ),
         );
     talker.warning("click on item found");
+    _debounce?.cancel();
+    _querySeq++;
     _searchController.clear();
     setState(() {
       _searchResults = [];
@@ -134,7 +171,7 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     controller: _searchController,
                     leadingIcon: Icons.search,
                     placeholder: l10n.searchProductHint,
-                    onChanged: _search,
+                    onChanged: _onQueryChanged,
                   ),
                 ),
                 const SizedBox(width: 12),

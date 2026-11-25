@@ -108,10 +108,15 @@ class CompositeVariation extends StatefulHookConsumerWidget {
   final EdgeInsets padding;
   final TextEditingController supplyPriceController;
 
+  /// The business currency, shown before each line's cost (as the retail
+  /// and supply prices show it).
+  final String currency;
+
   const CompositeVariation({
     Key? key,
     this.padding = const EdgeInsets.all(16.0),
     required this.supplyPriceController,
+    required this.currency,
   }) : super(key: key);
 
   @override
@@ -299,7 +304,7 @@ class CompositeVariationState extends ConsumerState<CompositeVariation> {
               label: l10n.compositeCost,
               child: PeVariantTextInput(
                 controller: controllers.cost,
-                prefix: 'RWF',
+                prefix: widget.currency,
                 readOnly: true,
               ),
             ),

@@ -935,6 +935,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   SearchProduct(),
                   const SizedBox(height: 16),
                   CompositeVariation(
+                    currency: _currency,
                     supplyPriceController: supplyPriceController,
                     padding: EdgeInsets.zero,
                   ),
