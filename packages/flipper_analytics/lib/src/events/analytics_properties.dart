@@ -13,14 +13,17 @@ abstract final class AnalyticsProperties {
   static const module = 'module';
   static const action = 'action';
 
-  /// On an event the offline queue sent late: when it really happened (ISO
-  /// 8601, UTC). PostHog stamps an event with the moment it reaches the SDK,
-  /// and posthog_flutter has no way to set that stamp, so analyses by time
-  /// should prefer this when it is set.
+  /// On an event the offline queue sent late: when it happened by the
+  /// device's own clock (ISO 8601, UTC). PostHog stamps an event with the
+  /// moment it reaches the SDK and posthog_flutter cannot set that stamp.
+  /// This value is not corrected for clock skew, so use it for display only;
+  /// analyses by time use `timestamp - queued_ms`.
   static const capturedAt = 'captured_at';
 
   /// On an event the offline queue sent late: how long it waited, in
-  /// milliseconds. Its absence means the event went out when it happened.
+  /// milliseconds, measured on one device clock. `timestamp - queued_ms` is
+  /// when the event happened, with PostHog's skew correction kept. Its
+  /// absence means the event went out when it happened.
   static const queuedMs = 'queued_ms';
 }
 
