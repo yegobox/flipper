@@ -1,18 +1,27 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
-void showPaymentSettingsModal(BuildContext context) async {
-  final String branchId = (await ProxyService.strategy.activeBranch(
-    branchId: ProxyService.box.getBranchId()!,
-  )).id;
+/// Opens the MTN Mobile Money toggle for the signed-in branch.
+///
+/// The sheet needs only the branch id, so it uses the stored one. Loading the
+/// branch first (`activeBranch()`) throws while Ditto is still opening, and the
+/// sheet then never appeared.
+Future<void> showPaymentSettingsModal(BuildContext context) async {
+  final String? branchId = ProxyService.box.getBranchId();
+  if (branchId == null) {
+    talker.warning('Payment settings: no branch selected');
+    return;
+  }
   final ValueNotifier<bool> isEnabledNotifier = ValueNotifier<bool>(false);
 
   // Fetch initial toggle state
   isEnabledNotifier.value = await ProxyService.strategy
       .isBranchEnableForPayment(currentBranchId: branchId);
+  if (!context.mounted) return;
 
-  showModalBottomSheet(
+  showModalBottomSheet<void>(
     context: context,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
