@@ -1606,6 +1606,9 @@
   "@clear": {
     "description": "Clears the current input"
   },
+  "datePickerToday": "Uyu munsi",
+  "datePickerTomorrow": "Ejo",
+  "datePickerNextMonday": "Ku wa mbere utaha",
   "addProductAction": "Ongeramo igicuruzwa",
   "@addProductAction": {
     "description": "Tooltip for adding a single product"

@@ -7,6 +7,8 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/personal_loans/loan_math.dart';
 import 'package:flipper_models/personal_loans/personal_loan.dart';
 import 'package:flipper_models/personal_loans/personal_loans_store.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -93,7 +95,7 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
 
   Future<void> _pickStart() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: _start ?? now,
       firstDate: DateTime(now.year - 30),
@@ -109,12 +111,12 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     // picker (its initial date must lie between first and last).
     final first = DateTime(now.year - 1);
     final last = DateTime(now.year + 40);
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: end ?? DateTime(now.year + 1, now.month),
       firstDate: end != null && end.isBefore(first) ? end : first,
       lastDate: end != null && end.isAfter(last) ? end : last,
-      initialDatePickerMode: DatePickerMode.year,
+      initialYearMode: true,
     );
     if (picked != null) setState(() => _end = picked);
   }

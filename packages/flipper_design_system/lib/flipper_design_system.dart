@@ -11,6 +11,7 @@ export 'src/theme/touch_input_mode.dart';
 export 'src/widgets/custom_app_bar.dart';
 export 'src/widgets/flipper_button.dart';
 export 'src/widgets/flipper_data_table.dart';
+export 'src/widgets/flipper_date_picker.dart';
 export 'src/widgets/flipper_divider.dart';
 export 'src/widgets/flipper_image_icon.dart';
 export 'src/widgets/flipper_onboarding.dart';

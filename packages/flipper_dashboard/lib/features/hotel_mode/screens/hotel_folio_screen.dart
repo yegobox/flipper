@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_design_system/flipper_design_system.dart'
-    show CLOSEBUTTON, CustomAppBar;
+    show CLOSEBUTTON, CustomAppBar, showFlipperDatePicker;
 import 'package:flipper_dashboard/features/bar_mode/bar_credit.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/services/hotel_folio_document_actions.dart';
@@ -568,7 +568,7 @@ class _HotelFolioBody extends ConsumerWidget {
     final arrival = stay.checkInAt.toLocal();
     final current = stay.expectedCheckOutAt.toLocal();
     final first = DateTime(arrival.year, arrival.month, arrival.day + 1);
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: current.isBefore(first) ? first : current,
       firstDate: first,

@@ -15,6 +15,8 @@ import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -23,6 +25,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_variants_empty.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+/// Expiry date for a variant row (was ScannViewModel.pickDate).
+Future<DateTime?> _pickExpiryDate(BuildContext context) {
+  return showFlipperDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2023),
+    lastDate: DateTime(2100),
+  );
+}
 
 class TableVariants extends StatelessWidget {
   final ScannViewModel model;
@@ -344,7 +356,7 @@ class TableVariants extends StatelessWidget {
     PeVariantBox(
       expirationStyle: true,
       onTap: () async {
-        final date = await model.pickDate(context);
+        final date = await _pickExpiryDate(context);
         if (date != null) {
           onDateChanged(variant.id, date);
           model.updateDateController(variant.id, date);
@@ -651,7 +663,7 @@ class TableVariants extends StatelessWidget {
                     ),
                     readOnly: true,
                     onTap: () async {
-                      final date = await model.pickDate(context);
+                      final date = await _pickExpiryDate(context);
                       if (date != null) {
                         onDateChanged(variant.id, date);
                         model.updateDateController(variant.id, date);
@@ -861,7 +873,7 @@ class TableVariants extends StatelessWidget {
             ),
             readOnly: true,
             onTap: () async {
-              final date = await model.pickDate(context);
+              final date = await _pickExpiryDate(context);
               if (date != null) {
                 onDateChanged(variant.id, date);
                 model.updateDateController(variant.id, date);

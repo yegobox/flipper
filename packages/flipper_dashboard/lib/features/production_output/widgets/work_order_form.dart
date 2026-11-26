@@ -1,4 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -678,7 +680,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: _targetDate,
       firstDate: DateTime.now().subtract(const Duration(days: 7)),

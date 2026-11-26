@@ -1,6 +1,8 @@
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,7 +44,7 @@ class BarCreditDuePicker extends StatelessWidget {
 
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: now.add(const Duration(days: 14)),
       firstDate: now,

@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^6.1.0
+  # Locale date labels in FlipperDateField.
+  intl: ^0.20.2
   # CustomAppBar's default action label.
   flipper_localize: ^1.0.0-dev
 

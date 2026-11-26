@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   flipper_localize: ^1.0.0-dev
+  # showFlipperDatePicker (shift history day filter).
+  flipper_design_system: any
   stacked: ^3.5.0
   flipper_models: any
   flipper_services: any

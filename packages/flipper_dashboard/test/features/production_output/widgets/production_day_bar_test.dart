@@ -79,8 +79,8 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.calendar_today));
     await tester.pumpAndSettle();
+    // One tap picks; there is no OK step.
     await tester.tap(find.text('12'));
-    await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
 
     expect(container.read(productionDayProvider), DateTime(2026, 3, 12));

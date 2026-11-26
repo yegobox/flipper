@@ -1,4 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,7 +45,7 @@ class ProductionDayBar extends ConsumerWidget {
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           onPressed: () async {
-            final picked = await showDatePicker(
+            final picked = await showFlipperDatePicker(
               context: context,
               // In range: only the arrows and this picker set the day.
               initialDate: day,

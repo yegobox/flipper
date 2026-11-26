@@ -8,6 +8,8 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/scheduler.dart';
@@ -300,7 +302,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
   void _showDatePicker(ProductViewModel model) {
     // Show the date picker
-    showDatePicker(
+    showFlipperDatePicker(
       context: context,
       initialDate: DateTime.now().toUtc(),
       firstDate: DateTime(2000),

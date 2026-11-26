@@ -9,6 +9,8 @@ import 'package:flipper_dashboard/features/personal_finance/loans/loans_screen.d
 import 'package:flipper_dashboard/features/personal_finance/personal_add_money_sheet.dart';
 import 'package:flipper_dashboard/features/personal_finance/personal_finance_data.dart';
 import 'package:flipper_dashboard/widgets/sms_review/sms_review_categories.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show FlipperCalendarPanel;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart' show Category;
 import 'package:flipper_models/personal_loans/personal_loan.dart';
@@ -519,7 +521,7 @@ void main() {
     await _tapKey(tester, 'loan-form-end');
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.byType(DatePickerDialog), findsOneWidget);
+    expect(find.byType(FlipperCalendarPanel), findsOneWidget);
   });
 
   Future<void> fillReceivedLoan(WidgetTester tester) async {

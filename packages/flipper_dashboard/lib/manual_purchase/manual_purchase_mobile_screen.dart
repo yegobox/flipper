@@ -13,6 +13,8 @@ import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -147,7 +149,7 @@ class _ManualPurchaseMobileScreenState
   }
 
   Future<void> _pickPurchaseDate(DateTime current) async {
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: current,
       firstDate: DateTime(2020),
@@ -160,7 +162,7 @@ class _ManualPurchaseMobileScreenState
 
   Future<void> _pickDueDate(ManualPurchaseState state) async {
     final current = state.effectiveDueDate;
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: current,
       firstDate: state.purchaseDate,

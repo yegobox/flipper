@@ -2731,6 +2731,24 @@ abstract class FlipperAppLocalizations {
   /// **'Clear'**
   String get clear;
 
+  /// Date picker quick choice: pick today
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get datePickerToday;
+
+  /// Date picker quick choice: pick tomorrow
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get datePickerTomorrow;
+
+  /// Date picker quick choice: pick the coming Monday
+  ///
+  /// In en, this message translates to:
+  /// **'Next Monday'**
+  String get datePickerNextMonday;
+
   /// Tooltip for adding a single product
   ///
   /// In en, this message translates to:

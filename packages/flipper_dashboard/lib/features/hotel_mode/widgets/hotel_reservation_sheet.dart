@@ -1,3 +1,5 @@
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
@@ -161,7 +163,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
   );
 
   Future<void> _pickArrival() async {
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: _checkIn,
       firstDate: hotelDateOnly(DateTime.now()),

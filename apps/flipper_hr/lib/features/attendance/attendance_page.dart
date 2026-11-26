@@ -7,6 +7,8 @@ import 'package:flipper_hr/features/attendance/widgets/attendance_state_chip.dar
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -48,7 +50,7 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
 
   Future<void> _pickDate() async {
     final today = dateOnly(ref.read(hrClockProvider)());
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: _date,
       firstDate: DateTime(today.year - 2),

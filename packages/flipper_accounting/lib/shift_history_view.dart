@@ -3,6 +3,8 @@ import 'dart:ui' show ImageFilter;
 import 'package:flipper_accounting/shift_history_viewmodel.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
@@ -405,7 +407,7 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
 
   Future<void> _pickDate({required bool isFrom}) async {
     final initial = isFrom ? _from : _to;
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: initial ?? DateTime.now(),
       firstDate: DateTime(2000),

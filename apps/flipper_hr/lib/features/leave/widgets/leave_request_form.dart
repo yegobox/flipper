@@ -5,6 +5,8 @@ import 'package:flipper_hr/features/leave/data/leave_validation.dart';
 import 'package:flipper_hr/features/leave/data/leave_working_days.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 
 /// Books leave: type, dates, reason — with the cost and the resulting balance
@@ -97,7 +99,7 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
 
   Future<void> _pickDate({required bool isStart}) async {
     final initial = isStart ? _start : _end;
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: initial,
       // Matches what the validator will accept, so the picker cannot offer a

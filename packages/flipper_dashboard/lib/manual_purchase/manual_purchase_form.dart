@@ -9,6 +9,8 @@ import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -347,7 +349,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                   InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () async {
-                      final picked = await showDatePicker(
+                      final picked = await showFlipperDatePicker(
                         context: context,
                         initialDate: state.purchaseDate,
                         firstDate: DateTime(2020),
@@ -430,7 +432,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () async {
-                  final picked = await showDatePicker(
+                  final picked = await showFlipperDatePicker(
                     context: context,
                     initialDate: due,
                     firstDate: state.purchaseDate,

@@ -5,6 +5,8 @@ import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart'
     show rlsViolationCode;
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -147,7 +149,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     required DateTime? current,
     required ValueChanged<DateTime> onPicked,
   }) async {
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: current ?? widget.today,
       firstDate: DateTime(widget.today.year - 60),

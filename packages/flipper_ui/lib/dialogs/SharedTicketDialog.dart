@@ -716,19 +716,12 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
 
   Future<void> _pickDueDate() async {
     if (_isSaving) return;
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: (_dueDate ?? DateTime.now().toUtc()).toLocal(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(
-            context,
-          ).copyWith(colorScheme: const ColorScheme.light(primary: _kPrimary)),
-          child: child!,
-        );
-      },
+      accent: _kPrimary,
     );
     if (picked != null) {
       setState(() {

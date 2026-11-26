@@ -7,6 +7,8 @@ import 'package:flipper_ai_feature/src/team/flo_team_repository.dart';
 import 'package:flipper_ai_feature/src/team/flo_team_view.dart';
 import 'package:flipper_ai_feature/src/theme/flo_theme.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_header.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show FlipperCalendarPanel;
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
@@ -38,6 +40,13 @@ Future<void> _pump(WidgetTester tester, FakeFloTeamRepository repo) async {
     ),
   );
   await tester.pumpAndSettle();
+}
+
+/// Today's cell in the Flipper calendar.
+Key todayCell() {
+  final now = DateTime.now();
+  return ValueKey(
+      'flipper-date-picker-day-${now.year}-${now.month}-${now.day}');
 }
 
 FakeFloTeamRepository _team() => FakeFloTeamRepository(
@@ -477,7 +486,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('flo-team-task-due')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('OK'));
+      await tester.tap(find.byKey(todayCell()));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('flo-team-task-due-clear')), findsOneWidget);
       await tester.tap(find.byKey(const Key('flo-team-task-due-clear')));
@@ -485,11 +494,14 @@ void main() {
       expect(find.text('Due: No date'), findsOneWidget);
       await tester.tap(find.byKey(const Key('flo-team-task-due')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cancel').last);
+      // Tapping outside the calendar closes it without a date.
+      await tester.tapAt(const Offset(4, 4));
       await tester.pumpAndSettle();
+      expect(find.byType(FlipperCalendarPanel), findsNothing);
+      expect(find.text('Due: No date'), findsOneWidget);
       await tester.tap(find.byKey(const Key('flo-team-task-due')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('OK'));
+      await tester.tap(find.byKey(todayCell()));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('flo-team-task-save')));
       await tester.pumpAndSettle();

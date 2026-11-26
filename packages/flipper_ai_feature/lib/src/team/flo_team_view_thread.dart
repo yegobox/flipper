@@ -559,7 +559,7 @@ class _TaskDialogState extends ConsumerState<_TaskDialog> {
 
   Future<void> _pickDue() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
       initialDate: _due ?? now,
       firstDate: DateTime(now.year - 1),
