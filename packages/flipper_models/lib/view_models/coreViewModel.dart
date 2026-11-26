@@ -232,8 +232,9 @@ class CoreViewModel extends FlipperBaseModel
         subTotal: updatedItems.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
       ITransaction? updatedTransaction =
-          (await ProxyService.strategy.transactions(id: pendingTransaction?.id))
-              .firstOrNull;
+          (await ProxyService.strategy.transactions(
+            id: pendingTransaction?.id,
+          )).firstOrNull;
       keypad.setTransaction(updatedTransaction);
     } catch (e, s) {
       talker.error(e);
@@ -373,8 +374,9 @@ class CoreViewModel extends FlipperBaseModel
         subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
       ITransaction? updatedTransaction =
-          (await ProxyService.strategy.transactions(id: pendingTransaction?.id))
-              .firstOrNull;
+          (await ProxyService.strategy.transactions(
+            id: pendingTransaction?.id,
+          )).firstOrNull;
       keypad.setTransaction(updatedTransaction);
     }
   }
@@ -648,8 +650,9 @@ class CoreViewModel extends FlipperBaseModel
       Strategy.capella,
     ).transactions(id: currentTransaction?.id)).firstOrNull;
 
-    ProxyService.getStrategy(Strategy.capella)
-        .updateTransaction(transaction: transaction!, note: note);
+    ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transaction: transaction!, note: note);
     callback(1);
   }
 
@@ -819,8 +822,9 @@ class CoreViewModel extends FlipperBaseModel
         );
     // Only detach when the deleted customer is the one on the pending cart.
     if (transaction?.customerId == id) {
-      await ProxyService.getStrategy(Strategy.capella)
-          .removeCustomerFromTransaction(transaction: transaction!);
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).removeCustomerFromTransaction(transaction: transaction!);
     }
     await ProxyService.strategy.flipperDelete(
       id: id,

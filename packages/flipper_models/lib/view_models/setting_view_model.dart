@@ -63,8 +63,9 @@ class SettingViewModel extends CoreViewModel {
 
   loadUserSettings() async {
     String businessId = ProxyService.box.getBusinessId()!;
-    _setting = await ProxyService.getStrategy(Strategy.capella)
-        .getSetting(businessId: businessId);
+    _setting = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getSetting(businessId: businessId);
     notifyListeners();
   }
 

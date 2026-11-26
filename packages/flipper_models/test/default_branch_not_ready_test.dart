@@ -83,8 +83,9 @@ void main() {
 
   test('branch found: createPin waits for it and sets it on the app', () async {
     final branch = Branch(id: _branchId, name: 'Main', businessId: 'biz-1');
-    when(() => db.activeBranch(branchId: _branchId))
-        .thenAnswer((_) async => branch);
+    when(
+      () => db.activeBranch(branchId: _branchId),
+    ).thenAnswer((_) async => branch);
 
     await SettingViewModel().createPin();
 

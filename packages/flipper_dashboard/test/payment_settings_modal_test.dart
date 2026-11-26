@@ -33,10 +33,12 @@ void main() {
     when(() => strategy.current).thenReturn(db);
     when(() => box.getBranchId()).thenReturn(_branchId);
     // What activeBranch() does while Ditto is not open and Brick has no row.
-    when(() => db.activeBranch(branchId: any(named: 'branchId')))
-        .thenThrow(Exception('Ditto not initialized for active branch query'));
-    when(() => db.isBranchEnableForPayment(currentBranchId: _branchId))
-        .thenAnswer((_) async => true);
+    when(
+      () => db.activeBranch(branchId: any(named: 'branchId')),
+    ).thenThrow(Exception('Ditto not initialized for active branch query'));
+    when(
+      () => db.isBranchEnableForPayment(currentBranchId: _branchId),
+    ).thenAnswer((_) async => true);
 
     getIt
       ..registerSingleton<LocalStorage>(box)
@@ -73,8 +75,9 @@ void main() {
     expect(find.text('Payment Settings'), findsOneWidget);
     expect(find.text('MTN Mobile Money'), findsOneWidget);
     expect(find.text('Enabled'), findsOneWidget);
-    verify(() => db.isBranchEnableForPayment(currentBranchId: _branchId))
-        .called(1);
+    verify(
+      () => db.isBranchEnableForPayment(currentBranchId: _branchId),
+    ).called(1);
     verifyNever(() => db.activeBranch(branchId: any(named: 'branchId')));
   });
 
