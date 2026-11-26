@@ -58,6 +58,14 @@ class VariantNotifier extends StateNotifier<List<VariantState>> {
     state = variants.map((variant) => VariantState(variant: variant)).toList();
   }
 
+  /// An edited combo's saved lines, quantities kept. Replaces whatever was
+  /// held, and forgets earlier removals so a saved line can be removed and
+  /// picked again.
+  void loadComponents(List<VariantState> lines) {
+    _deletedVariants.clear();
+    state = List.of(lines);
+  }
+
   void updateQuantity(VVariant variant, double quantity) {
     state = [
       for (final vs in state)

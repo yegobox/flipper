@@ -45,6 +45,8 @@ import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 import 'package:flipper_dashboard/features/product_entry/combo_save_values.dart';
+import 'package:flipper_dashboard/features/product_entry/combo_component_diff.dart';
+import 'package:flipper_dashboard/features/product_entry/product_save_gate.dart';
 import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flipper_models/sku/sku_duplicate_check.dart';
 import 'package:flipper_models/perf/ui_stall_watchdog.dart';
@@ -102,17 +104,27 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   /// The business's currency, shown before every price.
   String get _currency => ProxyService.box.defaultCurrency();
 
-  /// What a save needs, on every layout: a name, a valid retail price, and a
-  /// category (a combo needs its components instead).
+  bool get _isEditMode => widget.productId != null;
+
+  /// The prices the editor opened with. An edit writes a price to the
+  /// variants only when the user typed a different one (see [editedPrice]).
+  String _loadedRetailText = '';
+  String _loadedSupplyText = '';
+
+  /// An edited combo's saved component rows, by component variant id, so its
+  /// save updates them instead of adding new ones.
+  List<SavedComboComponent> _loadedComboComponents = const [];
+
+  /// What a save needs, on every layout (see [productCanSave]).
   bool _requiredFieldsFilled({required bool isComposite}) {
-    final nameFilled = productNameController.text.trim().isNotEmpty;
-    final retailFilled =
-        retailPriceController.text.trim().isNotEmpty &&
-        double.tryParse(retailPriceController.text) != null;
-    final rest = isComposite
-        ? ref.read(selectedVariantsLocalProvider).isNotEmpty
-        : selectedCategoryId != null;
-    return nameFilled && retailFilled && rest;
+    return productCanSave(
+      isEditMode: _isEditMode,
+      isComposite: isComposite,
+      name: productNameController.text,
+      retailText: retailPriceController.text,
+      hasCategory: selectedCategoryId != null,
+      hasComponents: ref.read(selectedVariantsLocalProvider).isNotEmpty,
+    );
   }
 
   // Helper function to get a valid color or a default color
@@ -288,8 +300,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             businessId: productRef.businessId,
             productName: syncedProductName,
             selectedProductType: selectedProductType,
-            newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
-            newSupplyPrice: double.tryParse(supplyPriceController.text),
+            // Only a price the user changed reaches every variant; otherwise
+            // each keeps its own (a rename must not flatten their prices).
+            newRetailPrice: editedPrice(
+              text: retailPriceController.text,
+              loadedText: _loadedRetailText,
+            ),
+            newSupplyPrice: editedPrice(
+              text: supplyPriceController.text,
+              loadedText: _loadedSupplyText,
+            ),
             rates: _rates,
             dates: _dates,
             onCompleteCallback: (List<Variant> variants) async {
@@ -467,12 +487,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       // A typed SKU must be free in the business (local check, offline-safe).
       // Blank is fine: one is assigned on save.
       final typedSku = v.sku;
+      // Editing: the combo's own variant, so its own SKU is no clash.
+      final editedComboVariant = _isEditMode
+          ? model.scannedVariants.firstOrNull
+          : null;
       final skuError = await skuSaveError(
         context,
         typed: typedSku,
         businessId: businessId,
+        storedSku: editedComboVariant?.sku,
         candidate: SkuHolder(
-          id: '',
+          id: editedComboVariant?.id ?? '',
           branchId: branchId,
           productId: product.id,
           bcd: v.barcode.trim(),
@@ -495,6 +520,21 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           showWarningNotification(context, context.flipperL10n.dpaAddComponent);
           talker.warning("No composite components selected");
         }
+        return;
+      }
+
+      if (editedComboVariant != null) {
+        await _updateComboProduct(
+          model,
+          product: product,
+          comboVariant: editedComboVariant,
+          values: v,
+          lines: partOfComposite,
+          branchId: branchId,
+          businessId: businessId,
+        );
+        if (!mounted) return;
+        _finishComboSave(product);
         return;
       }
 
@@ -606,29 +646,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
       if (!mounted) return;
 
-      // Refresh the list
-      final combinedNotifier = ref.read(refreshProvider);
-      combinedNotifier.performActions(productName: "", scanMode: true);
-
-      // Refresh asset provider to show the newly uploaded image immediately
-      if (product.id.isNotEmpty) {
-        // Invalidate the asset provider cache to force a refresh
-        // ref.invalidate(assetProvider(product.id));
-
-        // Also refresh the product provider to ensure all data is up-to-date
-        // ref.invalidate(productProvider(product.id));
-      }
-
-      ref.read(loadingProvider.notifier).stopLoading();
-
-      if (!mounted) return;
-
-      // Show success message and close dialog
-      showSuccessNotification(context, context.flipperL10n.dpaCompositeSaved);
-      Navigator.pop(context);
-
-      // Clear the state after closing the dialog to prevent visual glitch
-      ref.read(selectedVariantsLocalProvider.notifier).clearState();
+      _finishComboSave(product);
     } catch (e, stackTrace) {
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
@@ -644,6 +662,99 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     } finally {
       _saveInProgress = false;
     }
+  }
+
+  /// After a combo is saved (made or edited): refresh the lists, say so, and
+  /// close the editor.
+  void _finishComboSave(Product product) {
+    ref.read(refreshProvider).performActions(productName: "", scanMode: true);
+    ref.read(loadingProvider.notifier).stopLoading();
+    if (!mounted) return;
+    showSuccessNotification(context, context.flipperL10n.dpaCompositeSaved);
+    Navigator.pop(context);
+    // Cleared after closing, so the closing page does not flash empty.
+    ref.read(selectedVariantsLocalProvider.notifier).clearState();
+  }
+
+  /// Saves an edited combo in place. Its component rows are updated, added
+  /// or deleted to match the lines (never written twice), and its own variant
+  /// is updated rather than a second one made. Prices reach the variant only
+  /// when changed, as for any product edit.
+  Future<void> _updateComboProduct(
+    ScannViewModel model, {
+    required Product product,
+    required Variant comboVariant,
+    required ComboSaveValues values,
+    required List<VariantState> lines,
+    required String branchId,
+    required String businessId,
+  }) async {
+    final strategy = ProxyService.strategy;
+    final changes = planComboComponentChanges(
+      saved: _loadedComboComponents,
+      lines: [
+        for (final line in lines)
+          (variantId: line.variant.id, qty: line.quantity),
+      ],
+    );
+    final retailPrice = editedPrice(
+      text: retailPriceController.text,
+      loadedText: _loadedRetailText,
+    );
+    for (final row in changes.upserts) {
+      await strategy.saveComposite(
+        composite: Composite(
+          id: row.id,
+          businessId: businessId,
+          productId: product.id,
+          qty: row.qty,
+          actualPrice: retailPrice ?? comboVariant.retailPrice ?? 0,
+          branchId: branchId,
+          variantId: row.variantId,
+        ),
+      );
+    }
+    for (final id in changes.deleteIds) {
+      await strategy.flipperDelete(id: id, endPoint: 'composite');
+    }
+    talker.info(
+      'Combo ${product.id} edited: ${changes.upserts.length} component(s), '
+      '${changes.deleteIds.length} removed',
+    );
+
+    await strategy.updateProduct(
+      productId: product.id,
+      branchId: branchId,
+      businessId: businessId,
+      name: values.name,
+      isComposite: true,
+    );
+
+    // The combo's own variant (named after the combo when it was made): its
+    // name, SKU, bar code and kind from the form, then the same update every
+    // product edit runs.
+    final typedSku = values.sku;
+    if (typedSku.isNotEmpty) comboVariant.sku = typedSku;
+    comboVariant.bcd = values.barcode;
+    comboVariant.name = values.name;
+    final itemType = ref.read(madeInProductionProvider) ? '2' : '3';
+    comboVariant.itemTyCd = itemType;
+    await model.bulkUpdateVariants(
+      true,
+      color: pickerColor.toHex(),
+      categoryId: selectedCategoryId,
+      businessId: businessId,
+      productName: values.name,
+      selectedProductType: itemType,
+      newRetailPrice: retailPrice,
+      newSupplyPrice: editedPrice(
+        text: supplyPriceController.text,
+        loadedText: _loadedSupplyText,
+      ),
+      rates: _rates,
+      dates: _dates,
+      onCompleteCallback: _addVariantsToProvider,
+    );
   }
 
   Future<void> _onSaveButtonPressed(
@@ -887,6 +998,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 model.setRetailPrice(price: value),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
+                                // An edit keeps each variant's own price.
+                                if (_isEditMode) return null;
                                 return context.flipperL10n.dpaPriceRequired;
                               }
                               if (double.tryParse(value) == null) {
@@ -1025,6 +1138,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 model.setRetailPrice(price: value),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
+                                // An edit keeps each variant's own price.
+                                if (_isEditMode) return null;
                                 return context.flipperL10n.dpaPriceRequired;
                               }
                               if (double.tryParse(value) == null) {
@@ -1210,8 +1325,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             selectedProductType = variants.first.itemTyCd!;
           }
 
-          supplyPriceController.text = variants.first.supplyPrice.toString();
-          retailPriceController.text = variants.first.retailPrice.toString();
+          // A product saved without a price shows a blank field, never the
+          // text "null" (which no save would accept).
+          _loadedSupplyText = priceFieldText(variants.first.supplyPrice);
+          _loadedRetailText = priceFieldText(variants.first.retailPrice);
+          supplyPriceController.text = _loadedSupplyText;
+          retailPriceController.text = _loadedRetailText;
 
           // Explicitly update model prices to ensure UI sync
           model.setRetailPrice(price: retailPriceController.text);
@@ -1241,6 +1360,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           if (variants.first.color != null) {
             pickerColor = getColorOrDefault(variants.first.color!);
           }
+
+          if (product.isComposite == true) {
+            await _loadComboForEdit(product, variants.first);
+            if (!mounted) return;
+          }
         }
       } else {
         Product? product = await model.createProduct(
@@ -1268,6 +1392,58 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             : context.flipperL10n.dpaProductLoadFailed,
       );
     }
+  }
+
+  /// Puts an edited combo's own fields and its component lines (with their
+  /// quantities) into the editor, so it opens as it was saved and its save
+  /// updates it rather than adding a second combo.
+  Future<void> _loadComboForEdit(Product product, Variant comboVariant) async {
+    skuController.text = comboVariant.sku ?? '';
+    barCodeController.text = comboVariant.bcd ?? '';
+    ref.read(madeInProductionProvider.notifier).state =
+        comboVariant.itemTyCd == '2';
+
+    final strategy = ProxyService.strategy;
+    final saved = await strategy.composites(
+      productId: product.id,
+      localOnly: true,
+    );
+    final lines = <VariantState>[];
+    final loaded = <SavedComboComponent>[];
+    final unresolved = <String>{};
+    for (final row in saved) {
+      final variantId = row.variantId;
+      if (variantId == null || variantId.isEmpty) continue;
+      if (unresolved.contains(variantId)) continue;
+      if (lines.any((l) => l.variant.id == variantId)) {
+        loaded.add((id: row.id, variantId: variantId, qty: row.qty ?? 1));
+        continue;
+      }
+      final component = await strategy.getVariant(id: variantId);
+      if (component == null) {
+        // Not on this device (yet): leave its row alone rather than let the
+        // save read it as removed and delete it.
+        unresolved.add(variantId);
+        continue;
+      }
+      loaded.add((id: row.id, variantId: variantId, qty: row.qty ?? 1));
+      lines.add(
+        VariantState(
+          variant: VVariant(
+            productName: component.productName ?? component.name,
+            name: component.name,
+            id: component.id,
+            productId: component.productId ?? '',
+            retailPrice: component.retailPrice ?? 0,
+            supplyPrice: component.supplyPrice ?? 0,
+          ),
+          quantity: row.qty ?? 1,
+        ),
+      );
+    }
+    if (!mounted) return;
+    _loadedComboComponents = loaded;
+    ref.read(selectedVariantsLocalProvider.notifier).loadComponents(lines);
   }
 
   @override
@@ -1316,7 +1492,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   // validate() marks the bad fields; the gate is the same
                   // one desktop's Save uses.
                   final formOk = _formKey.currentState!.validate();
-                  if (selectedCategoryId == null) {
+                  // An edit keeps each variant's own category.
+                  if (selectedCategoryId == null && !_isEditMode) {
                     setState(() => _showCategoryError = true);
                   }
                   if (formOk && _requiredFieldsFilled(isComposite: false)) {
@@ -2591,6 +2768,7 @@ class _MobileProductEntry extends StatelessWidget {
                 isComposite: false,
                 forceHorizontalPrices: true,
                 currencySymbol: currency,
+                allowBlankRetail: productId != null,
               ),
               const SizedBox(height: 12),
               // Category and item type change stock, tax and the SKU prefix,
