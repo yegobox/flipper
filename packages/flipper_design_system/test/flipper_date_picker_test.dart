@@ -469,4 +469,29 @@ void main() {
       findsNothing,
     );
   });
+
+  for (final size in const [Size(360, 640), Size(320, 480)]) {
+    testWidgets(
+      'small phone ${size.width.toInt()}x${size.height.toInt()}: the whole '
+      'month fits or scrolls, never clips',
+      (tester) async {
+        final results = await _pumpHost(
+          tester,
+          initial: DateTime(2026, 11, 26),
+          first: DateTime(2026, 1, 1),
+          last: DateTime(2026, 12, 31),
+          size: size,
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byType(BottomSheet), findsOneWidget);
+        // November 2026 needs six rows; the 30th is on the last one.
+        final last = find.byKey(_day(2026, 11, 30));
+        await tester.ensureVisible(last);
+        await tester.pumpAndSettle();
+        await tester.tap(last);
+        await tester.pumpAndSettle();
+        expect(results, [DateTime(2026, 11, 30)]);
+      },
+    );
+  }
 }

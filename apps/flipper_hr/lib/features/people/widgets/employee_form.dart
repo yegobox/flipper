@@ -148,9 +148,11 @@ class _EmployeeFormState extends State<EmployeeForm> {
   Future<void> _pickDate({
     required DateTime? current,
     required ValueChanged<DateTime> onPicked,
+    BuildContext? anchor,
   }) async {
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: current ?? widget.today,
       firstDate: DateTime(widget.today.year - 60),
       lastDate: DateTime(widget.today.year + 5),
@@ -311,32 +313,38 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     _managerField(),
                     _pair(
                       isNarrow,
-                      _DateField(
-                        fieldKey: const Key('employee-hire-date'),
-                        label: l10n.hrStartDate,
-                        value: _draft.hireDate,
-                        error: _errors[EmployeeField.hireDate],
-                        onTap: () => _pickDate(
-                          current: _draft.hireDate,
-                          onPicked: (d) =>
-                              _update((draft) => draft.copyWith(hireDate: d)),
+                      Builder(
+                        builder: (anchor) => _DateField(
+                          fieldKey: const Key('employee-hire-date'),
+                          label: l10n.hrStartDate,
+                          value: _draft.hireDate,
+                          error: _errors[EmployeeField.hireDate],
+                          onTap: () => _pickDate(
+                            anchor: anchor,
+                            current: _draft.hireDate,
+                            onPicked: (d) =>
+                                _update((draft) => draft.copyWith(hireDate: d)),
+                          ),
                         ),
                       ),
-                      _DateField(
-                        fieldKey: const Key('employee-end-date'),
-                        label: l10n.hrLastDayOptional,
-                        value: _draft.endDate,
-                        error: _errors[EmployeeField.endDate],
-                        onTap: () => _pickDate(
-                          current: _draft.endDate,
-                          onPicked: (d) =>
-                              _update((draft) => draft.copyWith(endDate: d)),
+                      Builder(
+                        builder: (anchor) => _DateField(
+                          fieldKey: const Key('employee-end-date'),
+                          label: l10n.hrLastDayOptional,
+                          value: _draft.endDate,
+                          error: _errors[EmployeeField.endDate],
+                          onTap: () => _pickDate(
+                            anchor: anchor,
+                            current: _draft.endDate,
+                            onPicked: (d) =>
+                                _update((draft) => draft.copyWith(endDate: d)),
+                          ),
+                          onClear: _draft.endDate == null
+                              ? null
+                              : () => _update(
+                                  (draft) => draft.copyWith(clearEndDate: true),
+                                ),
                         ),
-                        onClear: _draft.endDate == null
-                            ? null
-                            : () => _update(
-                                (draft) => draft.copyWith(clearEndDate: true),
-                              ),
                       ),
                     ),
                   ],

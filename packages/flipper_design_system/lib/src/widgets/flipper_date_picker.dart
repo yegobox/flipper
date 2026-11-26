@@ -144,9 +144,14 @@ Future<DateTime?> showFlipperDatePicker({
   );
 
   if (isPhone) {
+    // Scroll-controlled so the sheet is as tall as the calendar needs (the
+    // default caps it at 9/16 of the screen, which cut off the last week on
+    // 360x640 phones); the content scrolls when even that does not fit.
     return showModalBottomSheet<DateTime>(
       context: context,
       useRootNavigator: useRootNavigator,
+      isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: _kSurface,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
@@ -154,7 +159,7 @@ Future<DateTime?> showFlipperDatePicker({
       ),
       builder: (_) => SafeArea(
         top: false,
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
           child: panel(inSheet: true),
         ),

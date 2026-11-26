@@ -97,10 +97,11 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
     annualOverride: widget.annualOverride,
   );
 
-  Future<void> _pickDate({required bool isStart}) async {
+  Future<void> _pickDate({required bool isStart, BuildContext? anchor}) async {
     final initial = isStart ? _start : _end;
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: initial,
       // Matches what the validator will accept, so the picker cannot offer a
       // date the form is about to reject.
@@ -206,20 +207,24 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
             Row(
               children: [
                 Expanded(
-                  child: _DateField(
-                    fieldKey: const Key('leave-start-field'),
-                    label: l10n.hrFirstDay,
-                    value: _start,
-                    onTap: () => _pickDate(isStart: true),
+                  child: Builder(
+                    builder: (anchor) => _DateField(
+                      fieldKey: const Key('leave-start-field'),
+                      label: l10n.hrFirstDay,
+                      value: _start,
+                      onTap: () => _pickDate(isStart: true, anchor: anchor),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _DateField(
-                    fieldKey: const Key('leave-end-field'),
-                    label: l10n.hrLastDay,
-                    value: _end,
-                    onTap: () => _pickDate(isStart: false),
+                  child: Builder(
+                    builder: (anchor) => _DateField(
+                      fieldKey: const Key('leave-end-field'),
+                      label: l10n.hrLastDay,
+                      value: _end,
+                      onTap: () => _pickDate(isStart: false, anchor: anchor),
+                    ),
                   ),
                 ),
               ],

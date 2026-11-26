@@ -175,10 +175,13 @@ class _HotelFolioBody extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
             children: [
-              HotelFolioHeaderCard(
-                stay: stay,
-                compact: true,
-                onChangeDeparture: () => _changeDeparture(context, ref),
+              Builder(
+                builder: (anchor) => HotelFolioHeaderCard(
+                  stay: stay,
+                  compact: true,
+                  onChangeDeparture: () =>
+                      _changeDeparture(context, ref, anchor),
+                ),
               ),
               const SizedBox(height: 18),
               _chargesTitle(l10n, lines),
@@ -239,9 +242,12 @@ class _HotelFolioBody extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.only(bottom: 28),
                   children: [
-                    HotelFolioHeaderCard(
-                      stay: stay,
-                      onChangeDeparture: () => _changeDeparture(context, ref),
+                    Builder(
+                      builder: (anchor) => HotelFolioHeaderCard(
+                        stay: stay,
+                        onChangeDeparture: () =>
+                            _changeDeparture(context, ref, anchor),
+                      ),
                     ),
                     const SizedBox(height: 20),
                     _deskChargesCard(context, ref, lines, l10n),
@@ -564,12 +570,17 @@ class _HotelFolioBody extends ConsumerWidget {
 
   /// Extend (or shorten) the stay. The room-night line follows, so the guest
   /// still leaves with one invoice for every night.
-  Future<void> _changeDeparture(BuildContext context, WidgetRef ref) async {
+  Future<void> _changeDeparture(
+    BuildContext context,
+    WidgetRef ref, [
+    BuildContext? anchor,
+  ]) async {
     final arrival = stay.checkInAt.toLocal();
     final current = stay.expectedCheckOutAt.toLocal();
     final first = DateTime(arrival.year, arrival.month, arrival.day + 1);
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: current.isBefore(first) ? first : current,
       firstDate: first,
       lastDate: first.add(const Duration(days: 365)),

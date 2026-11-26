@@ -154,4 +154,21 @@ void main() {
     expect(ProductionDayBar.weekStart(sunday, 1), DateTime(2026, 3, 9));
     expect(ProductionDayBar.weekStart(sunday, 0), sunday);
   });
+
+  testWidgets('on desktop the calendar opens under its button', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpBar(tester, day: DateTime(2026, 3, 10));
+
+    final button = tester.getRect(find.byIcon(Icons.calendar_today));
+    await tester.tap(find.byIcon(Icons.calendar_today));
+    await tester.pumpAndSettle();
+
+    final panel = tester.getRect(
+      find.byKey(const ValueKey('flipper-date-picker-panel')),
+    );
+    expect(panel.top, greaterThanOrEqualTo(button.bottom));
+    expect(panel.top - button.bottom, lessThan(24));
+  });
 }

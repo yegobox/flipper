@@ -557,10 +557,11 @@ class _TaskDialogState extends ConsumerState<_TaskDialog> {
   late String? _assignee = widget.thread.assigneeUserId;
   late DateTime? _due = widget.thread.dueDate;
 
-  Future<void> _pickDue() async {
+  Future<void> _pickDue([BuildContext? anchor]) async {
     final now = DateTime.now();
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: _due ?? now,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 5),
@@ -647,11 +648,13 @@ class _TaskDialogState extends ConsumerState<_TaskDialog> {
                       style: const TextStyle(color: FloTheme.ink1),
                     ),
                   ),
-                  IconButton(
-                    key: const Key('flo-team-task-due'),
-                    onPressed: _pickDue,
-                    icon: const Icon(Icons.edit_calendar_outlined,
-                        color: FloTheme.blue),
+                  Builder(
+                    builder: (anchor) => IconButton(
+                      key: const Key('flo-team-task-due'),
+                      onPressed: () => _pickDue(anchor),
+                      icon: const Icon(Icons.edit_calendar_outlined,
+                          color: FloTheme.blue),
+                    ),
                   ),
                   if (_due != null)
                     IconButton(

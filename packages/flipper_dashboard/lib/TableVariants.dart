@@ -27,9 +27,13 @@ import 'package:flipper_dashboard/features/product_editor/widgets/product_editor
 import 'package:google_fonts/google_fonts.dart';
 
 /// Expiry date for a variant row (was ScannViewModel.pickDate).
-Future<DateTime?> _pickExpiryDate(BuildContext context) {
+Future<DateTime?> _pickExpiryDate(
+  BuildContext context, {
+  BuildContext? anchor,
+}) {
   return showFlipperDatePicker(
     context: context,
+    anchorContext: anchor,
     initialDate: DateTime.now(),
     firstDate: DateTime(2023),
     lastDate: DateTime(2100),
@@ -353,38 +357,40 @@ class TableVariants extends StatelessWidget {
 
   Widget _expirationField(BuildContext context, Variant variant) => _cardField(
     context.flipperL10n.variantsExpiration,
-    PeVariantBox(
-      expirationStyle: true,
-      onTap: () async {
-        final date = await _pickExpiryDate(context);
-        if (date != null) {
-          onDateChanged(variant.id, date);
-          model.updateDateController(variant.id, date);
-        }
-      },
-      child: Row(
-        children: [
-          const Icon(
-            Icons.calendar_today_outlined,
-            size: 15,
-            color: ProductEditorTokens.blue,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              variant.expirationDate != null
-                  ? DateFormat('MMM d, yyyy').format(variant.expirationDate!)
-                  : context.flipperL10n.variantsSetDate,
-              style: GoogleFonts.outfit(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: variant.expirationDate != null
-                    ? ProductEditorTokens.ink1
-                    : ProductEditorTokens.ink4,
+    Builder(
+      builder: (anchor) => PeVariantBox(
+        expirationStyle: true,
+        onTap: () async {
+          final date = await _pickExpiryDate(context, anchor: anchor);
+          if (date != null) {
+            onDateChanged(variant.id, date);
+            model.updateDateController(variant.id, date);
+          }
+        },
+        child: Row(
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 15,
+              color: ProductEditorTokens.blue,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                variant.expirationDate != null
+                    ? DateFormat('MMM d, yyyy').format(variant.expirationDate!)
+                    : context.flipperL10n.variantsSetDate,
+                style: GoogleFonts.outfit(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: variant.expirationDate != null
+                      ? ProductEditorTokens.ink1
+                      : ProductEditorTokens.ink4,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );
@@ -651,24 +657,29 @@ class TableVariants extends StatelessWidget {
                 ),
                 _buildMobileInfoRow(
                   context.flipperL10n.variantsExpiration,
-                  TextFormField(
-                    controller: model.getDateController(variant.id),
-                    decoration: InputDecoration(
-                      suffixIcon: const Icon(Icons.calendar_today),
-                      hintText: variant.expirationDate != null
-                          ? DateFormat(
-                              'MMMM dd, yyyy',
-                            ).format(variant.expirationDate!)
-                          : context.flipperL10n.dateSelect,
+                  Builder(
+                    builder: (anchor) => TextFormField(
+                      controller: model.getDateController(variant.id),
+                      decoration: InputDecoration(
+                        suffixIcon: const Icon(Icons.calendar_today),
+                        hintText: variant.expirationDate != null
+                            ? DateFormat(
+                                'MMMM dd, yyyy',
+                              ).format(variant.expirationDate!)
+                            : context.flipperL10n.dateSelect,
+                      ),
+                      readOnly: true,
+                      onTap: () async {
+                        final date = await _pickExpiryDate(
+                          context,
+                          anchor: anchor,
+                        );
+                        if (date != null) {
+                          onDateChanged(variant.id, date);
+                          model.updateDateController(variant.id, date);
+                        }
+                      },
                     ),
-                    readOnly: true,
-                    onTap: () async {
-                      final date = await _pickExpiryDate(context);
-                      if (date != null) {
-                        onDateChanged(variant.id, date);
-                        model.updateDateController(variant.id, date);
-                      }
-                    },
                   ),
                 ),
               ],
@@ -863,22 +874,26 @@ class TableVariants extends StatelessWidget {
           ),
         ),
         DataCell(
-          TextFormField(
-            controller: model.getDateController(variant.id),
-            decoration: InputDecoration(
-              suffixIcon: const Icon(Icons.calendar_today),
-              hintText: variant.expirationDate != null
-                  ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
-                  : context.flipperL10n.dateSelect,
+          Builder(
+            builder: (anchor) => TextFormField(
+              controller: model.getDateController(variant.id),
+              decoration: InputDecoration(
+                suffixIcon: const Icon(Icons.calendar_today),
+                hintText: variant.expirationDate != null
+                    ? DateFormat(
+                        'MMMM dd, yyyy',
+                      ).format(variant.expirationDate!)
+                    : context.flipperL10n.dateSelect,
+              ),
+              readOnly: true,
+              onTap: () async {
+                final date = await _pickExpiryDate(context, anchor: anchor);
+                if (date != null) {
+                  onDateChanged(variant.id, date);
+                  model.updateDateController(variant.id, date);
+                }
+              },
             ),
-            readOnly: true,
-            onTap: () async {
-              final date = await _pickExpiryDate(context);
-              if (date != null) {
-                onDateChanged(variant.id, date);
-                model.updateDateController(variant.id, date);
-              }
-            },
           ),
         ),
         DataCell(
