@@ -148,9 +148,13 @@ class _ManualPurchaseMobileScreenState
     await _suggestInvoiceNo();
   }
 
-  Future<void> _pickPurchaseDate(DateTime current) async {
+  Future<void> _pickPurchaseDate(
+    DateTime current, [
+    BuildContext? anchor,
+  ]) async {
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: current,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
@@ -160,10 +164,14 @@ class _ManualPurchaseMobileScreenState
     }
   }
 
-  Future<void> _pickDueDate(ManualPurchaseState state) async {
+  Future<void> _pickDueDate(
+    ManualPurchaseState state, [
+    BuildContext? anchor,
+  ]) async {
     final current = state.effectiveDueDate;
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: current,
       firstDate: state.purchaseDate,
       lastDate: state.purchaseDate.add(const Duration(days: 730)),
@@ -316,11 +324,13 @@ class _ManualPurchaseMobileScreenState
                   ),
                 ),
                 const _Divider(),
-                _TapRow(
-                  icon: Icons.calendar_today_outlined,
-                  label: l10n.manualPurchasePurchaseDate,
-                  value: _date.format(state.purchaseDate),
-                  onTap: () => _pickPurchaseDate(state.purchaseDate),
+                Builder(
+                  builder: (anchor) => _TapRow(
+                    icon: Icons.calendar_today_outlined,
+                    label: l10n.manualPurchasePurchaseDate,
+                    value: _date.format(state.purchaseDate),
+                    onTap: () => _pickPurchaseDate(state.purchaseDate, anchor),
+                  ),
                 ),
               ],
             ),
@@ -358,11 +368,13 @@ class _ManualPurchaseMobileScreenState
                 ),
                 if (state.isOnCredit) ...[
                   const _Divider(),
-                  _TapRow(
-                    icon: Icons.event_outlined,
-                    label: l10n.manualPurchasePaySupplierBy,
-                    value: _date.format(state.effectiveDueDate),
-                    onTap: () => _pickDueDate(state),
+                  Builder(
+                    builder: (anchor) => _TapRow(
+                      icon: Icons.event_outlined,
+                      label: l10n.manualPurchasePaySupplierBy,
+                      value: _date.format(state.effectiveDueDate),
+                      onTap: () => _pickDueDate(state, anchor),
+                    ),
                   ),
                   if (state.pmtTyCd == '03') ...[
                     const _Divider(),

@@ -568,32 +568,34 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Widget _buildDateField(BuildContext context) {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: context.flipperL10n.productionOutputTargetDateRequired,
-          labelStyle: TextStyle(color: Colors.grey[700]),
-          prefixIcon: Icon(Icons.calendar_today, color: Colors.blue[700]),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+    return Builder(
+      builder: (anchor) => InkWell(
+        onTap: () => _selectDate(anchor),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: context.flipperL10n.productionOutputTargetDateRequired,
+            labelStyle: TextStyle(color: Colors.grey[700]),
+            prefixIcon: Icon(Icons.calendar_today, color: Colors.blue[700]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+          child: Text(
+            '${_targetDate.day}/${_targetDate.month}/${_targetDate.year}',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-          ),
-          filled: true,
-          fillColor: Colors.grey[50],
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        child: Text(
-          '${_targetDate.day}/${_targetDate.month}/${_targetDate.year}',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
@@ -682,6 +684,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: context,
       initialDate: _targetDate,
       firstDate: DateTime.now().subtract(const Duration(days: 7)),
       lastDate: DateTime.now().add(const Duration(days: 365)),

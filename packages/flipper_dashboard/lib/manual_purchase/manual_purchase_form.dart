@@ -346,28 +346,31 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _fieldLabel(l10n.manualPurchasePurchaseDate),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () async {
-                      final picked = await showFlipperDatePicker(
-                        context: context,
-                        initialDate: state.purchaseDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) notifier.setPurchaseDate(picked);
-                    },
-                    child: InputDecorator(
-                      decoration: _fieldDecoration(
-                        suffixIcon: Icon(
-                          Icons.calendar_today_outlined,
-                          size: 18,
-                          color: _hintColor,
+                  Builder(
+                    builder: (anchor) => InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () async {
+                        final picked = await showFlipperDatePicker(
+                          context: context,
+                          anchorContext: anchor,
+                          initialDate: state.purchaseDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) notifier.setPurchaseDate(picked);
+                      },
+                      child: InputDecorator(
+                        decoration: _fieldDecoration(
+                          suffixIcon: Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                            color: _hintColor,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        DateFormat('dd MMM yyyy').format(state.purchaseDate),
-                        style: const TextStyle(fontSize: 15),
+                        child: Text(
+                          DateFormat('dd MMM yyyy').format(state.purchaseDate),
+                          style: const TextStyle(fontSize: 15),
+                        ),
                       ),
                     ),
                   ),
@@ -429,28 +432,33 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _fieldLabel(l10n.manualPurchasePaySupplierBy),
-              InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () async {
-                  final picked = await showFlipperDatePicker(
-                    context: context,
-                    initialDate: due,
-                    firstDate: state.purchaseDate,
-                    lastDate: state.purchaseDate.add(const Duration(days: 730)),
-                  );
-                  if (picked != null) notifier.setDueDate(picked);
-                },
-                child: InputDecorator(
-                  decoration: _fieldDecoration(
-                    suffixIcon: Icon(
-                      Icons.event_outlined,
-                      size: 18,
-                      color: _hintColor,
+              Builder(
+                builder: (anchor) => InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () async {
+                    final picked = await showFlipperDatePicker(
+                      context: context,
+                      anchorContext: anchor,
+                      initialDate: due,
+                      firstDate: state.purchaseDate,
+                      lastDate: state.purchaseDate.add(
+                        const Duration(days: 730),
+                      ),
+                    );
+                    if (picked != null) notifier.setDueDate(picked);
+                  },
+                  child: InputDecorator(
+                    decoration: _fieldDecoration(
+                      suffixIcon: Icon(
+                        Icons.event_outlined,
+                        size: 18,
+                        color: _hintColor,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    DateFormat('dd MMM yyyy').format(due),
-                    style: const TextStyle(fontSize: 15),
+                    child: Text(
+                      DateFormat('dd MMM yyyy').format(due),
+                      style: const TextStyle(fontSize: 15),
+                    ),
                   ),
                 ),
               ),

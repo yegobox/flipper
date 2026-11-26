@@ -42,10 +42,11 @@ class BarCreditDuePicker extends StatelessWidget {
   static DateTime _inDays(int days) =>
       DateTime.now().toUtc().add(Duration(days: days));
 
-  Future<void> _pickDate(BuildContext context) async {
+  Future<void> _pickDate(BuildContext context, [BuildContext? anchor]) async {
     final now = DateTime.now();
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: now.add(const Duration(days: 14)),
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
@@ -102,11 +103,13 @@ class BarCreditDuePicker extends StatelessWidget {
                 l10n.uiTicketOneMonth,
                 () => Navigator.of(context).pop(_inDays(30)),
               ),
-              _option(
-                context,
-                l10n.uiTicketSelectDate,
-                () => _pickDate(context),
-                icon: Icons.calendar_today_outlined,
+              Builder(
+                builder: (anchor) => _option(
+                  context,
+                  l10n.uiTicketSelectDate,
+                  () => _pickDate(context, anchor),
+                  icon: Icons.calendar_today_outlined,
+                ),
               ),
             ],
           ),

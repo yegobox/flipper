@@ -280,9 +280,11 @@ class AddProductViewState extends ConsumerState<AddProductView> {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       child: SizedBox(
         width: double.infinity,
-        child: FlipperButton(
-          text: _getExpiryDateText(),
-          onPressed: () => _showDatePicker(model),
+        child: Builder(
+          builder: (anchor) => FlipperButton(
+            text: _getExpiryDateText(),
+            onPressed: () => _showDatePicker(model, anchor),
+          ),
         ),
       ),
     );
@@ -300,10 +302,11 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     );
   }
 
-  void _showDatePicker(ProductViewModel model) {
+  void _showDatePicker(ProductViewModel model, [BuildContext? anchor]) {
     // Show the date picker
     showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: DateTime.now().toUtc(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),

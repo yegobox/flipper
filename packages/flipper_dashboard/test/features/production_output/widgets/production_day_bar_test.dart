@@ -91,4 +91,21 @@ void main() {
     expect(shiftDay(DateTime(2026, 12, 31), 1), DateTime(2027, 1, 1));
     expect(shiftDay(DateTime(2026, 11, 23), 0), DateTime(2026, 11, 23));
   });
+
+  testWidgets('on desktop the calendar opens under its button', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpBar(tester, day: DateTime(2026, 3, 10));
+
+    final button = tester.getRect(find.byIcon(Icons.calendar_today));
+    await tester.tap(find.byIcon(Icons.calendar_today));
+    await tester.pumpAndSettle();
+
+    final panel = tester.getRect(
+      find.byKey(const ValueKey('flipper-date-picker-panel')),
+    );
+    expect(panel.top, greaterThanOrEqualTo(button.bottom));
+    expect(panel.top - button.bottom, lessThan(24));
+  });
 }

@@ -38,22 +38,25 @@ class ProductionDayBar extends ConsumerWidget {
               ? () => setDay(shiftDay(day, -1))
               : null,
         ),
-        TextButton.icon(
-          icon: const Icon(Icons.calendar_today, size: 16),
-          label: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+        Builder(
+          builder: (anchor) => TextButton.icon(
+            icon: const Icon(Icons.calendar_today, size: 16),
+            label: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            onPressed: () async {
+              final picked = await showFlipperDatePicker(
+                context: anchor,
+                anchorContext: anchor,
+                // In range: only the arrows and this picker set the day.
+                initialDate: day,
+                firstDate: firstDay,
+                lastDate: lastDay,
+              );
+              if (picked != null) setDay(picked);
+            },
           ),
-          onPressed: () async {
-            final picked = await showFlipperDatePicker(
-              context: context,
-              // In range: only the arrows and this picker set the day.
-              initialDate: day,
-              firstDate: firstDay,
-              lastDate: lastDay,
-            );
-            if (picked != null) setDay(picked);
-          },
         ),
         IconButton(
           icon: const Icon(Icons.chevron_right),

@@ -714,10 +714,11 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     widget.hasCustomerNotifier.value = true;
   }
 
-  Future<void> _pickDueDate() async {
+  Future<void> _pickDueDate([BuildContext? anchor]) async {
     if (_isSaving) return;
     final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: (_dueDate ?? DateTime.now().toUtc()).toLocal(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
@@ -1126,60 +1127,63 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: isSaving ? null : _pickDueDate,
-        borderRadius: BorderRadius.circular(_kFieldRadius),
-        child: _surfaceBox(
-          minHeight: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEF4FF),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _kPrimary.withValues(alpha: 0.25)),
+      child: Builder(
+        builder: (anchor) => InkWell(
+          onTap: isSaving ? null : () => _pickDueDate(anchor),
+          borderRadius: BorderRadius.circular(_kFieldRadius),
+          child: _surfaceBox(
+            minHeight: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF4FF),
+                    borderRadius: BorderRadius.circular(10),
+                    border:
+                        Border.all(color: _kPrimary.withValues(alpha: 0.25)),
+                  ),
+                  child: const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 18,
+                    color: _kPrimary,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 18,
-                  color: _kPrimary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      context.flipperL10n.uiTicketDueDate,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: _kLabel,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        context.flipperL10n.uiTicketDueDate,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: _kLabel,
+                        ),
                       ),
-                    ),
-                    Text(
-                      dateText,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: _kInk,
+                      Text(
+                        dateText,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _kInk,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.grey.shade500,
-                size: 22,
-              ),
-            ],
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.grey.shade500,
+                  size: 22,
+                ),
+              ],
+            ),
           ),
         ),
       ),
