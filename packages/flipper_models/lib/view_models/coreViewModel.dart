@@ -22,6 +22,7 @@ import 'package:intl/intl.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/repository.dart';
+
 import 'mixins/all.dart';
 
 class CoreViewModel extends FlipperBaseModel
@@ -588,10 +589,10 @@ class CoreViewModel extends FlipperBaseModel
     final tin = saved.custTin?.trim() ?? '';
     final pending = await ProxyService.getStrategy(Strategy.capella)
         .manageTransaction(
-      branchId: branchId,
-      transactionType: TransactionType.sale,
-      isExpense: false,
-    );
+          branchId: branchId,
+          transactionType: TransactionType.sale,
+          isExpense: false,
+        );
     if (pending?.customerId == saved.id || pending?.id == transactionId) {
       if (tin.isEmpty) {
         await ProxyService.box.remove(key: 'customerTin');
@@ -600,7 +601,10 @@ class CoreViewModel extends FlipperBaseModel
       }
       final nameTrim = saved.custNm?.trim() ?? '';
       if (nameTrim.isNotEmpty) {
-        await ProxyService.box.writeString(key: 'customerName', value: nameTrim);
+        await ProxyService.box.writeString(
+          key: 'customerName',
+          value: nameTrim,
+        );
       }
       await ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
@@ -830,22 +834,21 @@ class CoreViewModel extends FlipperBaseModel
     callback("customer deleted");
   }
 
-  /// This function gets the default tenant for the current user.
+  /// Puts the stored branch on [app].
   ///
-  /// The function first gets the user ID from the `ProxyService`.
-  /// Then, it calls the `getTenantBYUserId` method on the `ProxyService` to get the tenant for the user ID.
-  /// If the tenant is not found, the function throws an exception. because every default business owner should have
-  /// one default tenant
-  /// Finally, the function sets the tenant on the `app` object.
-
-  void defaultBranch() async {
-    String? branchId = ProxyService.box.getBranchId();
-    if (branchId != null) {
+  /// `activeBranch()` throws on purpose while Ditto is still opening and Brick
+  /// has no copy of the branch. That is not an error worth reporting here: the
+  /// view keeps the branch it already has, and the next open tries again.
+  Future<void> defaultBranch() async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+    try {
       final branch = await ProxyService.strategy.activeBranch(
         branchId: branchId,
       );
-
       app.setActiveBranch(branch: branch);
+    } catch (e) {
+      talker.warning('Default branch not loaded yet: $e');
     }
   }
 
