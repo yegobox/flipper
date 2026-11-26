@@ -77,6 +77,12 @@ void main() {
       expect(editedPrice(text: ' 1000.0 ', loadedText: '1000.0'), isNull);
     });
 
+    test('the same amount spelled differently is no change', () {
+      expect(editedPrice(text: '1000', loadedText: '1000.0'), isNull);
+      expect(editedPrice(text: '1000.00', loadedText: '1000.0'), isNull);
+      expect(editedPrice(text: 'abc', loadedText: '1000.0'), isNull);
+    });
+
     test('the typed price when it changed', () {
       expect(editedPrice(text: '1200', loadedText: '1000.0'), 1200);
       expect(editedPrice(text: '500', loadedText: ''), 500);

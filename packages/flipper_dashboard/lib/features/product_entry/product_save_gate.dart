@@ -26,13 +26,16 @@ bool productCanSave({
 }
 
 /// The price an edit should write to every variant, or null to keep each
-/// variant's own price. A price is written only when the user typed a new one:
-/// a blank field or the price the editor opened with changes nothing, so
-/// renaming a product never flattens its variants' prices.
+/// variant's own price. A price is written only when the user typed a
+/// different amount: a blank field, or the price the editor opened with in any
+/// spelling ("1000" for "1000.0"), changes nothing, so renaming a product
+/// never flattens its variants' prices.
 double? editedPrice({required String text, required String loadedText}) {
-  final typed = text.trim();
-  if (typed.isEmpty || typed == loadedText.trim()) return null;
-  return double.tryParse(typed);
+  final typed = double.tryParse(text.trim());
+  if (typed == null || typed == double.tryParse(loadedText.trim())) {
+    return null;
+  }
+  return typed;
 }
 
 /// A loaded price as the editor shows it: blank for none, never "null".
