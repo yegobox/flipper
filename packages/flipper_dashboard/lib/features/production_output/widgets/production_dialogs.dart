@@ -94,7 +94,6 @@ ButtonStyle productionPrimaryButtonStyle([Color tone = PosTokens.blue]) =>
       elevation: 0,
       minimumSize: const Size(0, PosTokens.controlHeight),
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      textStyle: PosTokens.bodyStrong,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),
       ),
@@ -104,7 +103,6 @@ ButtonStyle productionGhostButtonStyle() => TextButton.styleFrom(
   foregroundColor: PosTokens.ink2,
   minimumSize: const Size(0, PosTokens.controlHeight),
   padding: const EdgeInsets.symmetric(horizontal: 14),
-  textStyle: PosTokens.bodyStrong,
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(PosTokens.radiusMd),
   ),

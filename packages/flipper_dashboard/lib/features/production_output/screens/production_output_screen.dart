@@ -24,15 +24,12 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 /// strip, order cards and a bottom-sheet form.
 const double kProductionPhoneBreakpoint = 600;
 
-/// From this width the variance chart and the reason breakdown sit side by
-/// side under the orders.
-const double _kInsightsSideBySide = 1100;
-
 /// Production Output: plan work orders per day and record what was made.
 ///
 /// Top to bottom: the day strip with the page actions, the day's KPIs, the
 /// day's orders (table on desktop, cards on phones), orders carried over from
-/// earlier days, then the week's variance chart and reason breakdown.
+/// earlier days, the efficiency / completion / reason cards, then the week's
+/// variance chart.
 class ProductionOutputScreen extends ConsumerStatefulWidget {
   const ProductionOutputScreen({Key? key, @visibleForTesting this.service})
     : super(key: key);
@@ -107,7 +104,6 @@ class _ProductionOutputScreenState
     final chartData = chartAsync.asData?.value ?? const <VarianceDataPoint>[];
     final isSummaryLoading = summaryAsync.isLoading;
     final isPhone = _isPhone;
-    final width = MediaQuery.sizeOf(context).width;
     final l10n = context.flipperL10n;
     const gap = SizedBox(height: 16);
 
@@ -181,20 +177,9 @@ class _ProductionOutputScreenState
                     _buildCarriedOverList(carriedOver),
                   ],
                   gap,
-                  if (width >= _kInsightsSideBySide)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 3, child: chart),
-                        const SizedBox(width: 16),
-                        Expanded(flex: 2, child: cards),
-                      ],
-                    )
-                  else ...[
-                    chart,
-                    gap,
-                    cards,
-                  ],
+                  cards,
+                  gap,
+                  chart,
                 ],
               ),
             ),
@@ -414,7 +399,6 @@ class _ProductionOutputScreenState
     foregroundColor: color,
     visualDensity: VisualDensity.compact,
     padding: const EdgeInsets.symmetric(horizontal: 8),
-    textStyle: PosTokens.bodyStrong,
   );
 
   void _showWorkOrderDetails(WorkOrder workOrder) {

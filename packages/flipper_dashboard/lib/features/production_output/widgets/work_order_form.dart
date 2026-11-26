@@ -183,9 +183,9 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             crossAxisAlignment: WrapCrossAlignment.start,
             children: [
               field(320, _buildProductField()),
-              field(180, _buildQuantityField()),
+              field(200, _buildQuantityField()),
               field(
-                220,
+                240,
                 FlipperDateField(
                   key: const ValueKey('work-order-target-date'),
                   label: l10n.productionOutputTargetDateRequired,
@@ -456,7 +456,6 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             selectedBackgroundColor: PosTokens.blueTint,
             selectedForegroundColor: PosTokens.blue,
             side: const BorderSide(color: PosTokens.lineStrong),
-            textStyle: PosTokens.bodyStrong,
             visualDensity: VisualDensity.compact,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(PosTokens.radiusLg),
