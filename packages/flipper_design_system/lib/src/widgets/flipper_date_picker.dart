@@ -1124,6 +1124,8 @@ class FlipperDateField extends StatelessWidget {
           ),
           child: Text(
             text ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
