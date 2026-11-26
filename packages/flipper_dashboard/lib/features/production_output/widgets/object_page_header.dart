@@ -1,5 +1,8 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+
+import '../../../theme/pos_tokens.dart';
+import 'production_ui.dart';
 import '../models/production_output_models.dart';
 
 /// SAP Fiori-inspired Object Page Header widget
@@ -23,17 +26,7 @@ class ObjectPageHeader extends StatelessWidget {
     final l10n = context.flipperL10n;
     return Container(
       padding: EdgeInsets.all(isMobile ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: productionCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,7 +44,7 @@ class ObjectPageHeader extends StatelessWidget {
                   l10n.productionOutputOverview,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
+                    color: PosTokens.ink1,
                     fontSize: isMobile ? 16 : 20,
                   ),
                 ),
@@ -225,7 +218,7 @@ class ObjectPageHeader extends StatelessWidget {
             margin: EdgeInsets.only(right: index < (isMobile ? 1 : 3) ? 12 : 0),
             height: isMobile ? 60 : 80,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: PosTokens.surface2,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Center(
@@ -290,7 +283,7 @@ class _KpiTile extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: isCompact ? 11 : 12,
-                    color: Colors.grey[600],
+                    color: PosTokens.ink3,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -313,7 +306,7 @@ class _KpiTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: isCompact ? 18 : 24,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey[800],
+                    color: PosTokens.ink1,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -326,7 +319,7 @@ class _KpiTile extends StatelessWidget {
               subtitle!,
               style: TextStyle(
                 fontSize: isCompact ? 10 : 11,
-                color: Colors.grey[500],
+                color: PosTokens.ink3,
               ),
             ),
           ],

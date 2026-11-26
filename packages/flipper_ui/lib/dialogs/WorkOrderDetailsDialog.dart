@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:google_fonts/google_fonts.dart';
 
 /// Helper to show work order details dialog
@@ -42,7 +43,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
     final l10n = context.flipperL10n;
     final variance = workOrder.variance;
     final varianceColor =
-        variance >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+        variance >= 0 ? const Color(0xFF16A34A) : const Color(0xFFE5484D);
     final isCompleted = workOrder.status == 'completed';
     final isPlanned = workOrder.status == 'planned';
 
@@ -62,7 +63,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: const BoxDecoration(
-                color: Color(0xFF01B8E4),
+                color: Color(0xFF2563EB),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
@@ -154,7 +155,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F4F9),
+                color: const Color(0xFFF7F9FE),
                 border: Border(
                   top: BorderSide(color: Colors.grey.shade200),
                 ),
@@ -176,7 +177,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                               GoogleFonts.poppins(fontWeight: FontWeight.w600),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF01B8E4),
+                          backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
                           minimumSize: const Size(0, 48),
                           elevation: 0,
@@ -199,7 +200,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                               GoogleFonts.poppins(fontWeight: FontWeight.w600),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF01B8E4),
+                          backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
                           minimumSize: const Size(0, 48),
                           elevation: 0,
@@ -214,7 +215,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 48),
-                      side: const BorderSide(color: Color(0xFFE1E2E4)),
+                      side: const BorderSide(color: Color(0xFFE6ECF5)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -223,7 +224,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                       l10n.close,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF42474E),
+                        color: const Color(0xFF4A5567),
                       ),
                     ),
                   ),
@@ -243,17 +244,17 @@ class WorkOrderDetailsDialog extends StatelessWidget {
 
     switch (status) {
       case 'completed':
-        statusColor = const Color(0xFF10B981);
+        statusColor = const Color(0xFF16A34A);
         statusIcon = Icons.check_circle;
         statusLabel = FlipperL10n.current.uiWorkOrderCompleted;
         break;
       case 'in_progress':
-        statusColor = const Color(0xFFF59E0B);
+        statusColor = const Color(0xFFE08600);
         statusIcon = Icons.play_circle;
         statusLabel = FlipperL10n.current.uiWorkOrderInProgress;
         break;
       default:
-        statusColor = const Color(0xFF6B7280);
+        statusColor = const Color(0xFF7E8AA0);
         statusIcon = Icons.schedule;
         statusLabel = FlipperL10n.current.uiWorkOrderPlanned;
     }
@@ -297,7 +298,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
           FlipperL10n.current.uiWorkOrderPlanned,
           workOrder.plannedQuantity.toStringAsFixed(0),
           Icons.flag_outlined,
-          const Color(0xFF01B8E4),
+          const Color(0xFF2563EB),
         ),
         _buildMetricCard(
           FlipperL10n.current.uiWorkOrderActual,
@@ -316,23 +317,23 @@ class WorkOrderDetailsDialog extends StatelessWidget {
           '${workOrder.efficiency.toStringAsFixed(1)}%',
           Icons.speed,
           workOrder.efficiency >= 100
-              ? const Color(0xFF10B981)
+              ? const Color(0xFF16A34A)
               : workOrder.efficiency >= 90
-                  ? const Color(0xFFF59E0B)
-                  : const Color(0xFFEF4444),
+                  ? const Color(0xFFE08600)
+                  : const Color(0xFFE5484D),
         ),
         _buildMetricCard(
           FlipperL10n.current.uiWorkOrderTargetDate,
           _formatDate(workOrder.targetDate),
           Icons.calendar_today,
-          const Color(0xFF6B7280),
+          const Color(0xFF7E8AA0),
         ),
         if (workOrder.shiftId != null)
           _buildMetricCard(
             FlipperL10n.current.uiWorkOrderShift,
             workOrder.shiftId ?? FlipperL10n.current.uiWorkOrderNotApplicable,
             Icons.access_time,
-            const Color(0xFF6B7280),
+            const Color(0xFF7E8AA0),
           ),
       ],
     );
@@ -343,7 +344,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F9),
+        color: const Color(0xFFF7F9FE),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -364,7 +365,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
             label,
             style: GoogleFonts.poppins(
               fontSize: 11,
-              color: const Color(0xFF6B7280),
+              color: const Color(0xFF7E8AA0),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -377,7 +378,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F9),
+        color: const Color(0xFFF7F9FE),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -385,14 +386,14 @@ class WorkOrderDetailsDialog extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.notes, size: 18, color: Color(0xFF6B7280)),
+              const Icon(Icons.notes, size: 18, color: Color(0xFF7E8AA0)),
               const SizedBox(width: 8),
               Text(
                 FlipperL10n.current.uiWorkOrderNotes,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A1C1E),
+                  color: const Color(0xFF0B1220),
                 ),
               ),
             ],
@@ -402,7 +403,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
             notes,
             style: GoogleFonts.poppins(
               fontSize: 14,
-              color: const Color(0xFF42474E),
+              color: const Color(0xFF4A5567),
             ),
           ),
         ],
@@ -419,7 +420,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1A1C1E),
+            color: const Color(0xFF0B1220),
           ),
         ),
         const SizedBox(height: 12),
@@ -428,21 +429,21 @@ class WorkOrderDetailsDialog extends StatelessWidget {
             FlipperL10n.current.uiWorkOrderCreated,
             workOrder.createdAt,
             Icons.add_circle_outline,
-            const Color(0xFF01B8E4),
+            const Color(0xFF2563EB),
           ),
         if (workOrder.startedAt != null)
           _buildTimelineItem(
             FlipperL10n.current.uiWorkOrderStarted,
             workOrder.startedAt,
             Icons.play_circle_outline,
-            const Color(0xFFF59E0B),
+            const Color(0xFFE08600),
           ),
         if (workOrder.completedAt != null)
           _buildTimelineItem(
             FlipperL10n.current.uiWorkOrderCompleted,
             workOrder.completedAt,
             Icons.check_circle_outline,
-            const Color(0xFF10B981),
+            const Color(0xFF16A34A),
           ),
       ],
     );
@@ -472,14 +473,14 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1C1E),
+                    color: const Color(0xFF0B1220),
                   ),
                 ),
                 Text(
                   _formatDateTime(timestamp),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: const Color(0xFF6B7280),
+                    color: const Color(0xFF7E8AA0),
                   ),
                 ),
               ],
@@ -490,11 +491,21 @@ class WorkOrderDetailsDialog extends StatelessWidget {
     );
   }
 
+  /// The app language's date ("Nov 26, 2026"); numeric for a locale intl
+  /// has no data for (rw).
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    final local = date.toLocal();
+    try {
+      return DateFormat.yMMMd(FlipperL10n.current.localeName).format(local);
+    } catch (_) {
+      return '${local.day}/${local.month}/${local.year}';
+    }
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    final local = dateTime.toLocal();
+    final time =
+        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    return '${_formatDate(local)} $time';
   }
 }

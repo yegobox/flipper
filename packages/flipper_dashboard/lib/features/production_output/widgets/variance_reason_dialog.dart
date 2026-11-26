@@ -1,5 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+
+import '../../../theme/pos_tokens.dart';
 import '../models/production_output_models.dart';
 
 /// SAP Fiori-inspired Value Help Dialog for variance reasons
@@ -96,7 +98,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
           const SizedBox(height: 8),
           Text(
             l10n.productionOutputVarianceReasonHint,
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14, color: PosTokens.ink3),
           ),
           const SizedBox(height: 20),
           // Reason categories
@@ -125,7 +127,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
                 borderRadius: BorderRadius.circular(8),
               ),
               filled: true,
-              fillColor: Colors.grey[50],
+              fillColor: PosTokens.surface2,
             ),
           ),
           const SizedBox(height: 24),
@@ -186,10 +188,12 @@ class _ReasonTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.1) : Colors.grey[50],
+            color: isSelected
+                ? color.withValues(alpha: 0.1)
+                : PosTokens.surface2,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? color : Colors.grey[200]!,
+              color: isSelected ? color : PosTokens.line,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -199,7 +203,7 @@ class _ReasonTile extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(_getReasonIcon(reason), color: color, size: 20),
@@ -215,12 +219,12 @@ class _ReasonTile extends StatelessWidget {
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : FontWeight.w500,
-                        color: Colors.grey[800],
+                        color: PosTokens.ink1,
                       ),
                     ),
                     Text(
                       reason.localizedDescription(l10n),
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      style: TextStyle(fontSize: 12, color: PosTokens.ink3),
                     ),
                   ],
                 ),
@@ -233,22 +237,8 @@ class _ReasonTile extends StatelessWidget {
     );
   }
 
-  Color _getReasonColor(VarianceReasonCategory reason) {
-    switch (reason) {
-      case VarianceReasonCategory.machine:
-        return Colors.orange;
-      case VarianceReasonCategory.material:
-        return Colors.blue;
-      case VarianceReasonCategory.labor:
-        return Colors.purple;
-      case VarianceReasonCategory.quality:
-        return Colors.red;
-      case VarianceReasonCategory.planning:
-        return Colors.teal;
-      case VarianceReasonCategory.other:
-        return Colors.grey;
-    }
-  }
+  Color _getReasonColor(VarianceReasonCategory reason) =>
+      Color(varianceReasonColor(reason.name));
 
   IconData _getReasonIcon(VarianceReasonCategory reason) {
     switch (reason) {

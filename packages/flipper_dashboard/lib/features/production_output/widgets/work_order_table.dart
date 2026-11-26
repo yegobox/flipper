@@ -1,15 +1,16 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
-import '../models/production_output_models.dart';
-import '../../stock_recount/stock_recount_tokens.dart';
-import '../../stock_recount/stock_recount_icons.dart';
-import '../../stock_recount/stock_recount_helpers.dart';
 
-/// SAP Fiori-inspired Responsive Table widget (ALV-style)
+import '../../../theme/pos_tokens.dart';
+import '../models/production_output_models.dart';
+import 'production_ui.dart';
+
+/// The day's work orders on desktop: a status filter over a sortable table
+/// with the row actions (start, record output, complete).
 ///
-/// Displays work orders in a data table with filtering, sorting,
-/// and status indicators following SAP table conventions.
+/// It sizes itself to its rows, so the page scrolls as one instead of a fixed
+/// box scrolling inside it.
 class WorkOrderTable extends StatefulWidget {
   final List<WorkOrder> workOrders;
   final bool isLoading;
@@ -17,6 +18,9 @@ class WorkOrderTable extends StatefulWidget {
   final Function(WorkOrder)? onRecordOutput;
   final Function(WorkOrder)? onStart;
   final Function(WorkOrder)? onComplete;
+
+  /// The empty state's "new work order" action.
+  final VoidCallback? onCreate;
 
   const WorkOrderTable({
     Key? key,
@@ -26,6 +30,7 @@ class WorkOrderTable extends StatefulWidget {
     this.onRecordOutput,
     this.onStart,
     this.onComplete,
+    this.onCreate,
   }) : super(key: key);
 
   @override
@@ -39,70 +44,37 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isLoading) {
-      return _buildLoadingState();
-    }
-
     final filteredOrders = _getFilteredOrders();
     final sortedOrders = _getSortedOrders(filteredOrders);
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: productionCardDecoration(),
+      clipBehavior: Clip.antiAlias,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildTableHeader(context),
-          _buildFilterBar(context),
-          Expanded(
-            child: sortedOrders.isEmpty
-                ? _buildEmptyState(context)
-                : _buildTable(context, sortedOrders),
-          ),
+          const Divider(height: 1, color: PosTokens.line),
+          if (widget.isLoading)
+            const Padding(
+              padding: EdgeInsets.all(48),
+              child: Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: PosTokens.blue,
+                ),
+              ),
+            )
+          else if (sortedOrders.isEmpty)
+            _buildEmptyState(context)
+          else
+            _buildTable(context, sortedOrders),
         ],
       ),
     );
   }
 
   Widget _buildTableHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Icon(
-            Icons.assignment,
-            color: Color(VarianceColors.neutral),
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            context.flipperL10n.productionOutputWorkOrders,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const Spacer(),
-          Text(
-            context.flipperL10n.productionOutputItemsCount(
-              widget.workOrders.length,
-            ),
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterBar(BuildContext context) {
     final l10n = context.flipperL10n;
     // (label, filter value) — the value matches the stored work-order status.
     final filters = <(String, String?)>[
@@ -111,47 +83,39 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
       (l10n.productionOutputStatusInProgress, 'in_progress'),
       (l10n.productionOutputStatusCompleted, 'completed'),
     ];
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(
-          top: BorderSide(color: Colors.grey[200]!),
-          bottom: BorderSide(color: Colors.grey[200]!),
-        ),
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
+        runSpacing: 8,
+        spacing: 16,
         children: [
-          Text(
-            l10n.productionOutputStatusFilterLabel,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-          const SizedBox(width: 8),
-          ...filters.map((filter) {
-            final (label, filterValue) = filter;
-            final isSelected = _statusFilter == filterValue;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(label),
-                selected: isSelected,
-                onSelected: (_) {
-                  setState(() {
-                    _statusFilter = filterValue;
-                  });
-                },
-                selectedColor: Color(VarianceColors.neutral).withOpacity(0.2),
-                labelStyle: TextStyle(
-                  fontSize: 12,
-                  color: isSelected
-                      ? Color(VarianceColors.neutral)
-                      : Colors.grey[600],
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                visualDensity: VisualDensity.compact,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.assignment_outlined,
+                color: PosTokens.ink2,
+                size: 18,
               ),
-            );
-          }),
+              const SizedBox(width: 8),
+              Text(
+                l10n.productionOutputWorkOrders,
+                style: PosTokens.sectionTitle,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.productionOutputItemsCount(widget.workOrders.length),
+                style: PosTokens.meta,
+              ),
+            ],
+          ),
+          _FilterSegments(
+            filters: filters,
+            selected: _statusFilter,
+            onSelected: (value) => setState(() => _statusFilter = value),
+          ),
         ],
       ),
     );
@@ -159,42 +123,69 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
 
   Widget _buildTable(BuildContext context, List<WorkOrder> orders) {
     final l10n = context.flipperL10n;
-    return SingleChildScrollView(
-      child: DataTable(
-        sortColumnIndex: _getSortColumnIndex(),
-        sortAscending: _sortAscending,
-        headingRowColor: WidgetStateProperty.all(Colors.grey[50]),
-        dataRowMinHeight: 56,
-        dataRowMaxHeight: 72,
-        columns: [
-          DataColumn(
-            label: Text(l10n.productionOutputProduct),
-            onSort: (_, __) => _onSort('variantName'),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+          child: DataTable(
+            sortColumnIndex: _getSortColumnIndex(),
+            sortAscending: _sortAscending,
+            showCheckboxColumn: false,
+            headingRowHeight: 40,
+            headingRowColor: const WidgetStatePropertyAll(PosTokens.surface2),
+            headingTextStyle: PosTokens.eyebrow,
+            dataTextStyle: PosTokens.body,
+            dataRowMinHeight: 52,
+            dataRowMaxHeight: 60,
+            horizontalMargin: 16,
+            columnSpacing: 24,
+            dividerThickness: 1,
+            border: const TableBorder(
+              horizontalInside: BorderSide(color: PosTokens.line),
+            ),
+            columns: [
+              DataColumn(
+                label: Text(l10n.productionOutputProduct.toUpperCase()),
+                onSort: (_, __) => _onSort('variantName'),
+              ),
+              DataColumn(
+                label: Text(l10n.productionOutputTargetDate.toUpperCase()),
+                onSort: (_, __) => _onSort('targetDate'),
+              ),
+              DataColumn(
+                label: Text(l10n.productionOutputPlanned.toUpperCase()),
+                numeric: true,
+                onSort: (_, __) => _onSort('plannedQuantity'),
+              ),
+              DataColumn(
+                label: Text(l10n.productionOutputActual.toUpperCase()),
+                numeric: true,
+                onSort: (_, __) => _onSort('actualQuantity'),
+              ),
+              DataColumn(
+                label: Text(l10n.productionOutputVariance.toUpperCase()),
+                numeric: true,
+              ),
+              DataColumn(
+                label: Text(l10n.productionOutputStatus.toUpperCase()),
+              ),
+              DataColumn(label: Text(l10n.actions.toUpperCase())),
+            ],
+            rows: orders
+                .map((order) => _buildDataRow(context, l10n, order))
+                .toList(),
           ),
-          DataColumn(
-            label: Text(l10n.productionOutputTargetDate),
-            onSort: (_, __) => _onSort('targetDate'),
-          ),
-          DataColumn(
-            label: Text(l10n.productionOutputPlanned),
-            numeric: true,
-            onSort: (_, __) => _onSort('plannedQuantity'),
-          ),
-          DataColumn(
-            label: Text(l10n.productionOutputActual),
-            numeric: true,
-            onSort: (_, __) => _onSort('actualQuantity'),
-          ),
-          DataColumn(label: Text(l10n.productionOutputVariance), numeric: true),
-          DataColumn(label: Text(l10n.productionOutputStatus)),
-          DataColumn(label: Text(l10n.actions)),
-        ],
-        rows: orders.map((order) => _buildDataRow(l10n, order)).toList(),
+        ),
       ),
     );
   }
 
-  DataRow _buildDataRow(FlipperAppLocalizations l10n, WorkOrder order) {
+  DataRow _buildDataRow(
+    BuildContext context,
+    FlipperAppLocalizations l10n,
+    WorkOrder order,
+  ) {
     final status = WorkOrderStatus.fromString(order.status);
     final variance = order.variance;
     final varianceColor = variance >= 0
@@ -213,22 +204,29 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
             children: [
               Text(
                 order.variantName ?? l10n.productionOutputUnknown,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: PosTokens.bodyStrong,
               ),
               Text(
-                order.id.substring(0, 8),
-                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                order.id.length > 8 ? order.id.substring(0, 8) : order.id,
+                style: PosTokens.meta,
               ),
             ],
           ),
         ),
-        DataCell(Text(_formatDate(order.targetDate))),
+        DataCell(
+          Text(
+            MaterialLocalizations.of(
+              context,
+            ).formatMediumDate(order.targetDate.toLocal()),
+          ),
+        ),
         DataCell(Text(order.plannedQuantity.toStringAsFixed(0))),
         DataCell(
           Text(
             order.actualQuantity.toStringAsFixed(0),
             style: TextStyle(
-              color: order.actualQuantity > 0 ? varianceColor : Colors.grey,
+              color: order.actualQuantity > 0 ? varianceColor : PosTokens.ink3,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -237,49 +235,48 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                variance >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                variance >= 0
+                    ? Icons.arrow_upward_rounded
+                    : Icons.arrow_downward_rounded,
                 size: 14,
                 color: varianceColor,
               ),
               Text(
-                '${variance.abs().toStringAsFixed(0)}',
+                variance.abs().toStringAsFixed(0),
                 style: TextStyle(
                   color: varianceColor,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
         ),
-        DataCell(_buildStatusBadge(l10n, status)),
+        DataCell(WorkOrderStatusBadge(status: status)),
         DataCell(
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Start button (only for pending orders)
               if (status == WorkOrderStatus.planned && widget.onStart != null)
-                IconButton(
-                  icon: const Icon(Icons.play_arrow, size: 20),
+                _RowAction(
+                  icon: Icons.play_arrow_rounded,
                   tooltip: l10n.productionOutputStart,
+                  color: PosTokens.ink2,
                   onPressed: () => widget.onStart!(order),
-                  color: Colors.blue[700],
                 ),
-              // Record output button (for in-progress and pending)
               if (!order.isCompleted && widget.onRecordOutput != null)
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline, size: 20),
+                _RowAction(
+                  icon: Icons.add_circle_outline,
                   tooltip: l10n.productionOutputRecordOutput,
+                  color: PosTokens.blue,
                   onPressed: () => widget.onRecordOutput!(order),
-                  color: Color(VarianceColors.neutral),
                 ),
-              // Complete button (for in-progress orders)
               if (status == WorkOrderStatus.inProgress &&
                   widget.onComplete != null)
-                IconButton(
-                  icon: const Icon(Icons.check_circle_outline, size: 20),
+                _RowAction(
+                  icon: Icons.check_circle_outline,
                   tooltip: l10n.productionOutputComplete,
+                  color: PosTokens.gainInk,
                   onPressed: () => widget.onComplete!(order),
-                  color: Color(VarianceColors.positive),
                 ),
             ],
           ),
@@ -288,75 +285,17 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
     );
   }
 
-  Widget _buildStatusBadge(
-    FlipperAppLocalizations l10n,
-    WorkOrderStatus status,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Color(status.color).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        status.localizedLabel(l10n),
-        style: TextStyle(
-          fontSize: 12,
-          color: Color(status.color),
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-    );
-  }
-
   Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 92,
-            height: 92,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  StockRecountTokens.accentTint2,
-                  StockRecountTokens.accentTint,
-                ],
-              ),
-            ),
-            child: StockRecountIcons.box(
-              size: 40,
-              color: StockRecountTokens.accent,
-            ),
-          ),
-          const SizedBox(height: 22),
-          Text(
-            context.flipperL10n.productionOutputNoWorkOrdersFound,
-            style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            context.flipperL10n.productionOutputTableEmptyHint,
-            textAlign: TextAlign.center,
-            style: StockRecountHelpers.text(
-              size: 14.5,
-              color: StockRecountTokens.ink3,
-            ),
-          ),
-        ],
-      ),
+    final l10n = context.flipperL10n;
+    final filtered = _statusFilter != null && widget.workOrders.isNotEmpty;
+    return ProductionEmptyState(
+      framed: false,
+      icon: Icons.inventory_2_outlined,
+      title: l10n.productionOutputNoWorkOrdersFound,
+      message: l10n.productionOutputTableEmptyHint,
+      // A filter that hides everything is not a reason to plan more.
+      actionLabel: filtered ? null : l10n.productionOutputNewWorkOrder,
+      onAction: filtered ? null : widget.onCreate,
     );
   }
 
@@ -417,8 +356,116 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
         return 1;
     }
   }
+}
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+/// All / Planned / In progress / Completed as one segmented control.
+class _FilterSegments extends StatelessWidget {
+  const _FilterSegments({
+    required this.filters,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<(String, String?)> filters;
+  final String? selected;
+  final ValueChanged<String?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: PosTokens.surface2,
+        borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+        border: Border.all(color: PosTokens.line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (label, value) in filters)
+            _Segment(
+              label: label,
+              selected: selected == value,
+              onTap: () => onSelected(value),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Segment extends StatelessWidget {
+  const _Segment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(PosTokens.radiusSm);
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? PosTokens.surface : Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: selected
+              ? const BorderSide(color: PosTokens.line)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: selected ? PosTokens.ink1 : PosTokens.ink3,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RowAction extends StatelessWidget {
+  const _RowAction({
+    required this.icon,
+    required this.tooltip,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: PosTokens.iconMd),
+      tooltip: tooltip,
+      color: color,
+      onPressed: onPressed,
+      constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+      padding: EdgeInsets.zero,
+      style: IconButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+        ),
+      ),
+    );
   }
 }
