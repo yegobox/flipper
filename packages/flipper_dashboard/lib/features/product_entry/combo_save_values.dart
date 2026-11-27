@@ -8,6 +8,10 @@ typedef ComboSaveValues = ({
   String name,
   double retailPrice,
   double supplyPrice,
+  // The price fields as typed, for an edit's "did the price change" check
+  // (see editedPrice), taken in the same snapshot as the parsed prices.
+  String retailText,
+  String supplyText,
   String sku,
   String barcode,
   String countryOfOrigin,
@@ -27,6 +31,8 @@ ComboSaveValues readComboSaveValues({
     name: name.text,
     retailPrice: double.tryParse(retailPrice.text) ?? 0,
     supplyPrice: double.tryParse(supplyPrice.text) ?? 0,
+    retailText: retailPrice.text,
+    supplyText: supplyPrice.text,
     sku: sku.text.trim(),
     barcode: barcode.text,
     countryOfOrigin: countryOfOrigin.text.isEmpty ? 'RW' : countryOfOrigin.text,

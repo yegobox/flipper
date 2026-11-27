@@ -689,7 +689,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     required String businessId,
   }) async {
     final retailPrice = editedPrice(
-      text: retailPriceController.text,
+      text: values.retailText,
       loadedText: _loadedRetailText,
     );
     await updateComboInPlace(
@@ -712,13 +712,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         selectedProductType: itemType,
         newRetailPrice: retailPrice,
         newSupplyPrice: editedPrice(
-          text: supplyPriceController.text,
+          text: values.supplyText,
           loadedText: _loadedSupplyText,
         ),
         rates: _rates,
         dates: _dates,
         onCompleteCallback: _addVariantsToProvider,
       ),
+      // A failed save leaves the rows it already wrote as the baseline, so a
+      // retry updates them instead of writing a new line a second time.
+      onComponentsWritten: (rows) => _loadedComboComponents = rows,
     );
   }
 

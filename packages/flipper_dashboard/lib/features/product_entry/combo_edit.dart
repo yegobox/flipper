@@ -84,6 +84,10 @@ String applyComboForm(
 ///
 /// [retailPrice] is the price the user changed to, or null when unchanged; the
 /// component rows then keep the variant's own price.
+///
+/// [onComponentsWritten] gets the combo's saved rows after every component
+/// write. When a later step fails, the caller keeps them as its baseline, so
+/// retrying the save reuses a new line's row instead of writing it twice.
 Future<ComboComponentChanges> updateComboInPlace({
   required DatabaseSyncInterface strategy,
   required String productId,
@@ -96,6 +100,7 @@ Future<ComboComponentChanges> updateComboInPlace({
   required List<VariantState> lines,
   required double? retailPrice,
   required Future<void> Function(String itemType) updateVariant,
+  void Function(List<SavedComboComponent> rows)? onComponentsWritten,
 }) async {
   final changes = planComboComponentChanges(
     saved: saved,
@@ -104,21 +109,28 @@ Future<ComboComponentChanges> updateComboInPlace({
         (variantId: line.variant.id, qty: line.quantity),
     ],
   );
+  final written = [...saved];
+  void report() => onComponentsWritten?.call(List.unmodifiable(written));
   for (final row in changes.upserts) {
-    await strategy.saveComposite(
-      composite: Composite(
-        id: row.id,
-        businessId: businessId,
-        productId: productId,
-        qty: row.qty,
-        actualPrice: retailPrice ?? comboVariant.retailPrice ?? 0,
-        branchId: branchId,
-        variantId: row.variantId,
-      ),
+    final composite = Composite(
+      id: row.id,
+      businessId: businessId,
+      productId: productId,
+      qty: row.qty,
+      actualPrice: retailPrice ?? comboVariant.retailPrice ?? 0,
+      branchId: branchId,
+      variantId: row.variantId,
     );
+    await strategy.saveComposite(composite: composite);
+    written
+      ..removeWhere((s) => s.id == composite.id)
+      ..add((id: composite.id, variantId: row.variantId, qty: row.qty));
+    report();
   }
   for (final id in changes.deleteIds) {
     await strategy.flipperDelete(id: id, endPoint: 'composite');
+    written.removeWhere((s) => s.id == id);
+    report();
   }
   talker.info(
     'Combo $productId edited: ${changes.upserts.length} component(s), '

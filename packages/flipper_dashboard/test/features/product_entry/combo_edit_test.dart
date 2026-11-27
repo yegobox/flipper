@@ -40,6 +40,8 @@ const _values = (
   name: 'Lunch combo',
   retailPrice: 5000.0,
   supplyPrice: 0.0,
+  retailText: '5000',
+  supplyText: '0',
   sku: '',
   barcode: '123',
   countryOfOrigin: 'RW',
@@ -157,6 +159,7 @@ void main() {
       ComboSaveValues values = _values,
       bool madeInProduction = false,
       double? retailPrice,
+      void Function(List<SavedComboComponent> rows)? onComponentsWritten,
     }) async {
       final itemTypes = <String>[];
       final changes = await updateComboInPlace(
@@ -171,6 +174,7 @@ void main() {
         lines: lines,
         retailPrice: retailPrice,
         updateVariant: (itemType) async => itemTypes.add(itemType),
+        onComponentsWritten: onComponentsWritten,
       );
       return (changes: changes, itemTypes: itemTypes);
     }
@@ -216,6 +220,82 @@ void main() {
 
       expect(writes.deleted, ['c3']);
       expect(writes.saved.map((c) => c.id), ['c1', 'c2']);
+    });
+
+    group('a failed save, retried', () {
+      void failRenameOnce() {
+        var calls = 0;
+        when(
+          () => strategy.updateProduct(
+            productId: any(named: 'productId'),
+            branchId: any(named: 'branchId'),
+            businessId: any(named: 'businessId'),
+            name: any(named: 'name'),
+            isComposite: any(named: 'isComposite'),
+          ),
+        ).thenAnswer((inv) async {
+          if (calls++ == 0) throw StateError('offline');
+          writes.renamed.add(inv.namedArguments[#name] as String);
+        });
+      }
+
+      test('reuses the row it wrote for a new line', () async {
+        failRenameOnce();
+        var baseline = saved;
+        final lines = [_line('rice', 1), _line('meat', 1)];
+
+        await expectLater(
+          save(
+            lines: lines,
+            savedRows: baseline,
+            onComponentsWritten: (rows) => baseline = rows,
+          ),
+          throwsStateError,
+        );
+        final firstMeat = writes.saved.singleWhere(
+          (c) => c.variantId == 'meat',
+        );
+        expect(baseline.map((s) => (s.id, s.variantId)), [
+          ('c1', 'rice'),
+          (firstMeat.id, 'meat'),
+        ], reason: 'beans deleted, meat now saved');
+
+        writes.saved.clear();
+        writes.deleted.clear();
+        await save(lines: lines, savedRows: baseline);
+
+        expect(writes.saved.map((c) => (c.id, c.variantId)), [
+          ('c1', 'rice'),
+          (firstMeat.id, 'meat'),
+        ]);
+        expect(writes.deleted, isEmpty);
+        expect(writes.renamed, ['Lunch combo']);
+      });
+
+      test('deletes a new line removed before the retry', () async {
+        failRenameOnce();
+        var baseline = saved;
+
+        await expectLater(
+          save(
+            lines: [_line('rice', 1), _line('beans', 2), _line('meat', 1)],
+            savedRows: baseline,
+            onComponentsWritten: (rows) => baseline = rows,
+          ),
+          throwsStateError,
+        );
+        final meatId = writes.saved
+            .singleWhere((c) => c.variantId == 'meat')
+            .id;
+
+        writes.deleted.clear();
+        await save(
+          lines: [_line('rice', 1), _line('beans', 2)],
+          savedRows: baseline,
+        );
+
+        expect(writes.deleted, [meatId]);
+      });
     });
 
     test('a changed price reaches the component rows', () async {
@@ -265,6 +345,8 @@ void main() {
           name: 'Combo',
           retailPrice: 1.0,
           supplyPrice: 0.0,
+          retailText: '1',
+          supplyText: '0',
           sku: 'NEW-1',
           barcode: '',
           countryOfOrigin: 'RW',
