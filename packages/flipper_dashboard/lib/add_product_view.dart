@@ -8,6 +8,8 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/scheduler.dart';
@@ -278,9 +280,11 @@ class AddProductViewState extends ConsumerState<AddProductView> {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       child: SizedBox(
         width: double.infinity,
-        child: FlipperButton(
-          text: _getExpiryDateText(),
-          onPressed: () => _showDatePicker(model),
+        child: Builder(
+          builder: (anchor) => FlipperButton(
+            text: _getExpiryDateText(),
+            onPressed: () => _showDatePicker(model, anchor),
+          ),
         ),
       ),
     );
@@ -298,10 +302,11 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     );
   }
 
-  void _showDatePicker(ProductViewModel model) {
+  void _showDatePicker(ProductViewModel model, [BuildContext? anchor]) {
     // Show the date picker
-    showDatePicker(
+    showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: DateTime.now().toUtc(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),

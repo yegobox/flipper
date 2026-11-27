@@ -7,6 +7,8 @@ import 'package:flipper_hr/features/attendance/widgets/attendance_state_chip.dar
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,10 +48,11 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
 
   bool _busy = false;
 
-  Future<void> _pickDate() async {
+  Future<void> _pickDate([BuildContext? anchor]) async {
     final today = dateOnly(ref.read(hrClockProvider)());
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: _date,
       firstDate: DateTime(today.year - 2),
       // No future days: there are no hours to show, and picking one looks broken.
@@ -282,7 +285,9 @@ class _Header extends StatelessWidget {
   final String? branchName;
   final DateTime date;
   final bool isToday;
-  final VoidCallback onPickDate;
+
+  /// Gets the button's context, so the calendar opens under it.
+  final ValueChanged<BuildContext> onPickDate;
   final VoidCallback onToday;
 
   @override
@@ -314,11 +319,13 @@ class _Header extends StatelessWidget {
             onPressed: onToday,
             child: Text(context.flipperL10n.hrToday),
           ),
-        OutlinedButton.icon(
-          key: const Key('attendance-pick-date'),
-          onPressed: onPickDate,
-          icon: const Icon(Icons.calendar_today_outlined, size: 18),
-          label: Text(context.flipperL10n.hrChangeDay),
+        Builder(
+          builder: (anchor) => OutlinedButton.icon(
+            key: const Key('attendance-pick-date'),
+            onPressed: () => onPickDate(anchor),
+            icon: const Icon(Icons.calendar_today_outlined, size: 18),
+            label: Text(context.flipperL10n.hrChangeDay),
+          ),
         ),
       ],
     );

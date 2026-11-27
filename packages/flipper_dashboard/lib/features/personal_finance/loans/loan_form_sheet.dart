@@ -7,6 +7,8 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/personal_loans/loan_math.dart';
 import 'package:flipper_models/personal_loans/personal_loan.dart';
 import 'package:flipper_models/personal_loans/personal_loans_store.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -91,10 +93,11 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     super.dispose();
   }
 
-  Future<void> _pickStart() async {
+  Future<void> _pickStart([BuildContext? anchor]) async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: _start ?? now,
       firstDate: DateTime(now.year - 30),
       lastDate: now,
@@ -102,19 +105,20 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     if (picked != null) setState(() => _start = picked);
   }
 
-  Future<void> _pickEnd() async {
+  Future<void> _pickEnd([BuildContext? anchor]) async {
     final now = DateTime.now();
     final end = _end;
     // A saved end outside the usual range widens it rather than breaking the
     // picker (its initial date must lie between first and last).
     final first = DateTime(now.year - 1);
     final last = DateTime(now.year + 40);
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: end ?? DateTime(now.year + 1, now.month),
       firstDate: end != null && end.isBefore(first) ? end : first,
       lastDate: end != null && end.isAfter(last) ? end : last,
-      initialDatePickerMode: DatePickerMode.year,
+      initialYearMode: true,
     );
     if (picked != null) setState(() => _end = picked);
   }
@@ -252,23 +256,30 @@ class _LoanFormSheetState extends ConsumerState<LoanFormSheet> {
     ),
   );
 
-  Widget _date(String label, DateTime? value, VoidCallback onTap, {Key? key}) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: OutlinedButton.icon(
-          key: key,
-          style: OutlinedButton.styleFrom(
-            alignment: Alignment.centerLeft,
-            minimumSize: const Size.fromHeight(52),
-            foregroundColor: PosTokens.ink1,
-          ),
-          onPressed: onTap,
-          icon: const Icon(Icons.event_outlined),
-          label: Text(
-            value == null ? label : '$label: ${loanMonth(context, value)}',
-          ),
+  /// [onTap] gets the button's context, so the calendar opens under it.
+  Widget _date(
+    String label,
+    DateTime? value,
+    void Function(BuildContext anchor) onTap, {
+    Key? key,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Builder(
+      builder: (anchor) => OutlinedButton.icon(
+        key: key,
+        style: OutlinedButton.styleFrom(
+          alignment: Alignment.centerLeft,
+          minimumSize: const Size.fromHeight(52),
+          foregroundColor: PosTokens.ink1,
         ),
-      );
+        onPressed: () => onTap(anchor),
+        icon: const Icon(Icons.event_outlined),
+        label: Text(
+          value == null ? label : '$label: ${loanMonth(context, value)}',
+        ),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {

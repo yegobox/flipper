@@ -1473,6 +1473,15 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get clear => 'Ondoa';
 
   @override
+  String get datePickerToday => 'Leo';
+
+  @override
+  String get datePickerTomorrow => 'Kesho';
+
+  @override
+  String get datePickerNextMonday => 'Jumatatu ijayo';
+
+  @override
   String get addProductAction => 'Ongeza bidhaa';
 
   @override

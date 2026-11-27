@@ -17,6 +17,10 @@ class PricingSection extends HookConsumerWidget {
   /// Shown before both prices (the business's currency, e.g. RWF).
   final String? currencySymbol;
 
+  /// Editing a product: a blank retail price is allowed and keeps each
+  /// variant's own price.
+  final bool allowBlankRetail;
+
   const PricingSection({
     Key? key,
     required this.retailPriceController,
@@ -25,6 +29,7 @@ class PricingSection extends HookConsumerWidget {
     required this.isComposite,
     this.forceHorizontalPrices = false,
     this.currencySymbol,
+    this.allowBlankRetail = false,
   }) : super(key: key);
 
   @override
@@ -48,6 +53,7 @@ class PricingSection extends HookConsumerWidget {
                 onChanged: (value) => model.setRetailPrice(price: value),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    if (allowBlankRetail) return null;
                     return context.flipperL10n.productEntryPriceRequired;
                   }
                   if (double.tryParse(value) == null) {

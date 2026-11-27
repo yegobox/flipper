@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/production_output/models/production_o
 import 'package:flipper_dashboard/features/production_output/providers/production_output_derived_providers.dart';
 import 'package:flipper_dashboard/features/production_output/screens/production_output_screen.dart';
 import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
+import 'package:flipper_dashboard/features/production_output/widgets/production_dialogs.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,8 +64,12 @@ WorkOrder _order() => WorkOrder(
 );
 
 void main() {
-  Future<void> pumpScreen(WidgetTester tester, _FakeService service) async {
-    tester.view.physicalSize = const Size(1600, 1200);
+  Future<void> pumpScreen(
+    WidgetTester tester,
+    _FakeService service, {
+    Size size = const Size(1600, 1200),
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
@@ -79,6 +84,7 @@ void main() {
           varianceChartDataProvider.overrideWithValue(
             const AsyncData(<VarianceDataPoint>[]),
           ),
+          productionDayCountsProvider.overrideWithValue(const {}),
         ],
         child: MaterialApp(
           localizationsDelegates: FlipperLocalizationDelegates.delegates,
@@ -132,5 +138,54 @@ void main() {
 
     expect(service.recorded, [20]);
     expect(find.text('tax server down'), findsOneWidget);
+  });
+
+  testWidgets('recording nothing is refused with a message', (tester) async {
+    final service = _FakeService();
+    await pumpScreen(tester, service);
+
+    await tester.tap(find.byTooltip('Record Output'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Record'));
+    await tester.pumpAndSettle();
+    expect(find.text('Required'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '0');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Record'));
+    await tester.pumpAndSettle();
+    expect(service.recorded, isEmpty);
+    expect(find.byType(RecordOutputDialog), findsOneWidget);
+  });
+
+  testWidgets('Enter in the quantity field records', (tester) async {
+    final service = _FakeService();
+    await pumpScreen(tester, service);
+
+    await tester.tap(find.byTooltip('Record Output'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '20');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(service.recorded, [20]);
+  });
+
+  testWidgets('desktop has no page title; phones get an app bar and cards', (
+    tester,
+  ) async {
+    await pumpScreen(tester, _FakeService());
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.text('New Order'), findsOneWidget);
+
+    await pumpScreen(tester, _FakeService(), size: const Size(390, 844));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(AppBar), findsOneWidget);
+    expect(find.text('Bread'), findsOneWidget);
+  });
+
+  test('variancePercent never divides by zero', () {
+    expect(variancePercent(actual: 5, planned: 0), 0);
+    expect(variancePercent(actual: 8, planned: 10), closeTo(20, 1e-9));
+    expect(variancePercent(actual: 12, planned: 10), closeTo(20, 1e-9));
   });
 }

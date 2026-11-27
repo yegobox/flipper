@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -46,14 +47,17 @@ class ProductEntrySaveGuard extends ConsumerWidget {
   }
 }
 
-/// The combo switch is a global flag. Left on from the last product, it would
-/// open the next one as a combo, so every editor starts as a plain product.
+/// The combo switch and the combo's component lines are global. Left over
+/// from the last product, they would open the next one as a combo, or with
+/// another combo's components, so every editor starts as a plain product with
+/// no lines (an edited combo loads its own).
 @visibleForTesting
 void startFreshProductEntry(BuildContext context) {
-  ProviderScope.containerOf(
-    context,
-    listen: false,
-  ).read(isCompositeProvider.notifier).state = false;
+  final container = ProviderScope.containerOf(context, listen: false);
+  container.read(isCompositeProvider.notifier).state = false;
+  container
+      .read(selectedVariantsLocalProvider.notifier)
+      .loadComponents(const []);
 }
 
 /// Editing: the editor opens in the product's own mode, so a combo stays a

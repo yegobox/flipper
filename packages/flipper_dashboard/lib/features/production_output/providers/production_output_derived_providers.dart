@@ -100,6 +100,25 @@ ProductionDayOrders ordersForDay(
   return ProductionDayOrders(due: due, carriedOver: carriedOver);
 }
 
+/// How many orders are due on each local day (cancelled ones left out), for
+/// the day strip.
+Map<DateTime, int> countOrdersByDay(List<WorkOrder> workOrders) {
+  final counts = <DateTime, int>{};
+  for (final wo in workOrders) {
+    if (wo.status == 'cancelled') continue;
+    final day = localDay(wo.targetDate);
+    counts[day] = (counts[day] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/// [countOrdersByDay] over the branch's orders. Reads the same single Ditto
+/// observer as the list, so the strip adds no query.
+final productionDayCountsProvider = Provider<Map<DateTime, int>>((ref) {
+  final orders = ref.watch(workOrdersStreamProvider).asData?.value;
+  return orders == null ? const {} : countOrdersByDay(orders);
+});
+
 /// Work orders with their output totals applied ([withOutputTotals]).
 final workOrdersWithTotalsProvider = Provider<AsyncValue<List<WorkOrder>>>((
   ref,

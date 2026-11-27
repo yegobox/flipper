@@ -1,4 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show FlipperDateField;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -7,14 +9,16 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
-import '../../stock_recount/stock_recount_tokens.dart';
-import '../../stock_recount/stock_recount_icons.dart';
-import '../../stock_recount/stock_recount_helpers.dart';
 
-/// SAP Fiori-inspired Smart Form widget for work orders
+import '../../../theme/pos_tokens.dart';
+import 'production_dialogs.dart';
+import 'production_ui.dart';
+
+/// Create (or edit) a work order: product, planned quantity, target date,
+/// optional shift and notes.
 ///
-/// A form to create or edit work orders with material selection,
-/// planned quantity, target date, and notes.
+/// Used by the desktop inline form, the phone bottom sheet and the incoming
+/// orders "produce" flow; on phones it is drawn without its own card.
 class WorkOrderForm extends ConsumerStatefulWidget {
   const WorkOrderForm({
     Key? key,
@@ -33,6 +37,12 @@ class WorkOrderForm extends ConsumerStatefulWidget {
   final String? initialVariantName;
   final double? initialPlannedQuantity;
 
+  /// Target dates the form accepts: a week back to a year ahead.
+  static DateTime firstTargetDate(DateTime now) =>
+      DateUtils.dateOnly(now).subtract(const Duration(days: 7));
+  static DateTime lastTargetDate(DateTime now) =>
+      DateUtils.dateOnly(now).add(const Duration(days: 365));
+
   @override
   ConsumerState<WorkOrderForm> createState() => _WorkOrderFormState();
 }
@@ -45,7 +55,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   String? _selectedVariantId;
   Variant? _selectedVariant;
-  DateTime _targetDate = DateTime.now();
+  DateTime _targetDate = DateUtils.dateOnly(DateTime.now());
   String? _selectedShift;
   bool _isSubmitting = false;
 
@@ -87,8 +97,8 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
           _selectedVariant = variant;
         });
       }
-    } catch (e) {
-      print('Error fetching variant details: $e');
+    } catch (e, s) {
+      talker.warning('WorkOrderForm: could not load variant details', e, s);
     }
   }
 
@@ -103,204 +113,144 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.workOrderId != null;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     final l10n = context.flipperL10n;
+    final now = DateTime.now();
 
-    return Container(
-      padding: EdgeInsets.all(isMobile ? 0 : 24),
-      decoration: isMobile
-          ? null
-          : BoxDecoration(
-              color: StockRecountTokens.surface,
-              border: Border.all(color: StockRecountTokens.line),
-              borderRadius: BorderRadius.circular(StockRecountTokens.radiusLg),
-              boxShadow: StockRecountTokens.cardShadows,
-            ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header (only show on desktop, mobile has bottom sheet header)
-            if (!isMobile) ...[
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                decoration: BoxDecoration(
-                  color: StockRecountTokens.accentTint,
-                  borderRadius: BorderRadius.circular(
-                    StockRecountTokens.radiusMd,
+    Widget field(double width, Widget child) =>
+        SizedBox(width: isMobile ? double.infinity : width, child: child);
+
+    final form = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header (desktop only; the bottom sheet has its own)
+          if (!isMobile) ...[
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: PosTokens.blueTint,
+                    borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+                  ),
+                  child: Icon(
+                    isEdit ? Icons.edit_outlined : Icons.add_task_rounded,
+                    color: PosTokens.blue,
+                    size: 20,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: StockRecountTokens.surface,
-                        border: Border.all(color: StockRecountTokens.line),
-                        borderRadius: BorderRadius.circular(
-                          StockRecountTokens.radiusSm,
-                        ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEdit
+                            ? l10n.productionOutputEditWorkOrder
+                            : l10n.productionOutputCreateWorkOrder,
+                        style: PosTokens.sectionTitle.copyWith(fontSize: 16),
                       ),
-                      child: Icon(
-                        isEdit ? Icons.edit_outlined : Icons.add_circle_outline,
-                        color: Colors.blue[700],
-                        size: 24,
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.productionOutputFormSubtitle,
+                        style: PosTokens.meta,
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isEdit
-                                ? l10n.productionOutputEditWorkOrder
-                                : l10n.productionOutputCreateWorkOrder,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: StockRecountTokens.ink1,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            l10n.productionOutputFormSubtitle,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: StockRecountTokens.ink2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (widget.onCancel != null)
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: widget.onCancel,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white,
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-            ],
-            // Form fields in a responsive layout
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: isMobile ? 0 : 16),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 20,
-                children: [
-                  // Product/Variant selection
-                  SizedBox(
-                    width: isMobile ? double.infinity : 300,
-                    child: _buildProductField(),
+                if (widget.onCancel != null)
+                  IconButton(
+                    icon: const Icon(Icons.close, size: PosTokens.iconMd),
+                    color: PosTokens.ink3,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
+                    onPressed: widget.onCancel,
                   ),
-                  // Planned Quantity
-                  SizedBox(
-                    width: isMobile ? double.infinity : 200,
-                    child: _buildQuantityField(),
-                  ),
-                  // Target Date
-                  SizedBox(
-                    width: isMobile ? double.infinity : 200,
-                    child: _buildDateField(context),
-                  ),
-                  // Shift (optional)
-                  SizedBox(
-                    width: isMobile ? double.infinity : 200,
-                    child: _buildShiftField(),
-                  ),
-                ],
-              ),
+              ],
             ),
-            const SizedBox(height: 20),
-            // Notes
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: isMobile ? 0 : 16),
-              child: _buildNotesField(),
-            ),
-            const SizedBox(height: 24),
-            // Action buttons
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: isMobile ? 0 : 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (widget.onCancel != null && !isMobile)
-                    TextButton(
-                      onPressed: widget.onCancel,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                      ),
-                      child: Text(l10n.cancel),
-                    ),
-                  if (!isMobile) const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _handleSubmit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: StockRecountTokens.accent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        elevation: 0,
-                        shadowColor: StockRecountTokens.accentRing,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            StockRecountTokens.radiusSm,
-                          ),
-                        ),
-                      ),
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isEdit ? Icons.check : Icons.add,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  isEdit
-                                      ? l10n.productionOutputUpdateWorkOrder
-                                      : l10n.productionOutputCreateWorkOrder,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 18),
+            const Divider(height: 1, color: PosTokens.line),
+            const SizedBox(height: 18),
           ],
-        ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 16,
+            crossAxisAlignment: WrapCrossAlignment.start,
+            children: [
+              field(320, _buildProductField()),
+              field(200, _buildQuantityField()),
+              field(
+                240,
+                FlipperDateField(
+                  key: const ValueKey('work-order-target-date'),
+                  label: l10n.productionOutputTargetDateRequired,
+                  value: _targetDate,
+                  firstDate: WorkOrderForm.firstTargetDate(now),
+                  lastDate: WorkOrderForm.lastTargetDate(now),
+                  onChanged: (date) => setState(() => _targetDate = date),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildShiftField(),
+          const SizedBox(height: 16),
+          _buildNotesField(),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (widget.onCancel != null && !isMobile) ...[
+                TextButton(
+                  style: productionGhostButtonStyle(),
+                  onPressed: widget.onCancel,
+                  child: Text(l10n.cancel),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                flex: isMobile ? 1 : 0,
+                child: ElevatedButton.icon(
+                  key: const ValueKey('work-order-submit'),
+                  onPressed: _isSubmitting ? null : _handleSubmit,
+                  style: productionPrimaryButtonStyle().copyWith(
+                    minimumSize: const WidgetStatePropertyAll(
+                      Size(0, PosTokens.controlHeight + 4),
+                    ),
+                  ),
+                  icon: _isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(isEdit ? Icons.check : Icons.add, size: 18),
+                  label: Text(
+                    isEdit
+                        ? l10n.productionOutputUpdateWorkOrder
+                        : l10n.productionOutputCreateWorkOrder,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+    );
+
+    if (isMobile) return form;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: productionCardDecoration(),
+      child: form,
     );
   }
 
@@ -330,34 +280,25 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       // goes from null to non-null, which used to kill the live controller.
       controller: _typeAheadController,
       itemBuilder: (context, Variant variant) {
-        return Container(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+        return ListTile(
+          dense: true,
+          leading: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: PosTokens.surface2,
+              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+            ),
+            child: const Icon(
+              Icons.inventory_2_outlined,
+              color: PosTokens.ink2,
+              size: 18,
             ),
           ),
-          child: ListTile(
-            leading: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.inventory_2_outlined,
-                color: Colors.blue[700],
-                size: 20,
-              ),
-            ),
-            title: Text(
-              variant.name,
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Text(
-              l10n.skuLabel(variant.sku ?? l10n.productionOutputNotAvailable),
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            dense: true,
+          title: Text(variant.name, style: PosTokens.bodyStrong),
+          subtitle: Text(
+            l10n.skuLabel(variant.sku ?? l10n.productionOutputNotAvailable),
+            style: PosTokens.meta,
           ),
         );
       },
@@ -370,59 +311,35 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       },
       builder: (context, controller, focusNode) {
         if (_selectedVariant != null) {
-          return InkWell(
-            onTap: () {
-              // Optional: expand if needed, but chip usually implies selection is done
-            },
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: l10n.productionOutputProductMaterialRequired,
-                labelStyle: TextStyle(
-                  color: Colors.blue[700],
-                  fontWeight: FontWeight.w500,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blue[300]!, width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blue[300]!, width: 2),
-                ),
-                filled: true,
-                fillColor: Colors.blue[50],
-                contentPadding: EdgeInsets.fromLTRB(16, 12, 16, 12),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      children: [
-                        Chip(
-                          avatar: Icon(
-                            Icons.check_circle,
-                            color: Colors.blue[700],
-                            size: 18,
-                          ),
-                          label: Text(
-                            _selectedVariant!.name,
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          backgroundColor: Colors.white,
-                          deleteIcon: Icon(Icons.close, size: 18),
-                          onDeleted: () {
-                            setState(() {
-                              _selectedVariant = null;
-                              _selectedVariantId = null;
-                              controller.text = '';
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+          // The pick, shown as a filled field with a clear button.
+          return InputDecorator(
+            decoration:
+                productionInputDecoration(
+                  label: l10n.productionOutputProductMaterialRequired,
+                ).copyWith(
+                  prefixIcon: const Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: PosTokens.blue,
                   ),
-                ],
-              ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    color: PosTokens.ink3,
+                    tooltip: l10n.clear,
+                    onPressed: () {
+                      setState(() {
+                        _selectedVariant = null;
+                        _selectedVariantId = null;
+                        controller.text = '';
+                      });
+                    },
+                  ),
+                ),
+            child: Text(
+              _selectedVariant!.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: PosTokens.bodyStrong.copyWith(fontSize: 14),
             ),
           );
         }
@@ -436,30 +353,11 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
               _selectedVariant = null;
             });
           },
-          style: TextStyle(fontSize: 16),
-          decoration: InputDecoration(
-            labelText: l10n.productionOutputProductMaterialRequired,
-            hintText: l10n.productionOutputSearchProduct,
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            prefixIcon: Icon(
-              Icons.inventory_2_outlined,
-              color: Colors.blue[700],
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.grey[50],
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          style: PosTokens.body.copyWith(fontSize: 14),
+          decoration: productionInputDecoration(
+            label: l10n.productionOutputProductMaterialRequired,
+            hint: l10n.productionOutputSearchProduct,
+            prefixIcon: Icons.search,
           ),
           validator: (value) {
             if (_selectedVariantId == null) {
@@ -474,41 +372,17 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    StockRecountTokens.accentTint2,
-                    StockRecountTokens.accentTint,
-                  ],
-                ),
-              ),
-              child: Center(
-                child: StockRecountIcons.search(
-                  size: 22,
-                  color: StockRecountTokens.accent,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
+            const Icon(Icons.search_off, size: 28, color: PosTokens.ink4),
+            const SizedBox(height: 8),
             Text(
               l10n.productionOutputNoProductsFound,
-              style: StockRecountHelpers.text(
-                size: 15,
-                weight: FontWeight.w700,
-              ),
+              style: PosTokens.bodyStrong,
             ),
             const SizedBox(height: 4),
             Text(
               l10n.productionOutputNoProductsHint,
               textAlign: TextAlign.center,
-              style: StockRecountHelpers.text(
-                size: 13,
-                color: StockRecountTokens.ink3,
-              ),
+              style: PosTokens.meta,
             ),
           ],
         ),
@@ -520,38 +394,13 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     final l10n = context.flipperL10n;
     return TextFormField(
       controller: _plannedQtyController,
-      keyboardType: TextInputType.number,
-      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        labelText: l10n.productionOutputPlannedQuantityRequired,
-        labelStyle: TextStyle(color: Colors.grey[700]),
-        hintText: '0',
-        hintStyle: TextStyle(color: Colors.grey[400]),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: PosTokens.body.copyWith(fontSize: 14),
+      decoration: productionInputDecoration(
+        label: l10n.productionOutputPlannedQuantityRequired,
+        hint: '0',
         suffixText: l10n.productionOutputUnits,
-        suffixStyle: TextStyle(
-          color: Colors.grey[600],
-          fontWeight: FontWeight.w500,
-        ),
-        prefixIcon: Icon(Icons.numbers, color: Colors.blue[700]),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red[400]!, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        prefixIcon: Icons.numbers,
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -565,81 +414,55 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     );
   }
 
-  Widget _buildDateField(BuildContext context) {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: context.flipperL10n.productionOutputTargetDateRequired,
-          labelStyle: TextStyle(color: Colors.grey[700]),
-          prefixIcon: Icon(Icons.calendar_today, color: Colors.blue[700]),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[300]!),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[300]!),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-          ),
-          filled: true,
-          fillColor: Colors.grey[50],
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        child: Text(
-          '${_targetDate.day}/${_targetDate.month}/${_targetDate.year}',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-      ),
-    );
-  }
-
+  /// Morning / Afternoon / Night as one segmented control; tap the chosen
+  /// shift again to clear it (the shift is optional).
   Widget _buildShiftField() {
     final l10n = context.flipperL10n;
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedShift,
-      decoration: InputDecoration(
-        labelText: l10n.productionOutputShiftOptional,
-        labelStyle: TextStyle(color: Colors.grey[700]),
-        prefixIcon: Icon(Icons.access_time, color: Colors.blue[700]),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    final shifts = <(String, String, IconData)>[
+      ('morning', l10n.productionOutputShiftMorning, Icons.wb_twilight),
+      (
+        'afternoon',
+        l10n.productionOutputShiftAfternoon,
+        Icons.wb_sunny_outlined,
       ),
-      items: [
-        DropdownMenuItem(
-          value: 'morning',
-          child: Text(l10n.productionOutputShiftMorning),
-        ),
-        DropdownMenuItem(
-          value: 'afternoon',
-          child: Text(l10n.productionOutputShiftAfternoon),
-        ),
-        DropdownMenuItem(
-          value: 'night',
-          child: Text(l10n.productionOutputShiftNight),
+      ('night', l10n.productionOutputShiftNight, Icons.nightlight_outlined),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.productionOutputShiftOptional, style: PosTokens.meta),
+        const SizedBox(height: 6),
+        SegmentedButton<String>(
+          key: const ValueKey('work-order-shift'),
+          segments: [
+            for (final (value, label, icon) in shifts)
+              ButtonSegment<String>(
+                value: value,
+                label: Text(label),
+                icon: Icon(icon, size: 16),
+              ),
+          ],
+          selected: {?_selectedShift},
+          emptySelectionAllowed: true,
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) {
+            setState(() {
+              _selectedShift = selection.isEmpty ? null : selection.first;
+            });
+          },
+          style: SegmentedButton.styleFrom(
+            backgroundColor: PosTokens.surface,
+            foregroundColor: PosTokens.ink2,
+            selectedBackgroundColor: PosTokens.blueTint,
+            selectedForegroundColor: PosTokens.blue,
+            side: const BorderSide(color: PosTokens.lineStrong),
+            visualDensity: VisualDensity.compact,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(PosTokens.radiusLg),
+            ),
+          ),
         ),
       ],
-      onChanged: (value) {
-        setState(() {
-          _selectedShift = value;
-        });
-      },
     );
   }
 
@@ -647,48 +470,14 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     final l10n = context.flipperL10n;
     return TextFormField(
       controller: _notesController,
-      maxLines: 3,
-      style: TextStyle(fontSize: 16),
-      decoration: InputDecoration(
-        labelText: l10n.productionOutputNotes,
-        labelStyle: TextStyle(color: Colors.grey[700]),
-        hintText: l10n.productionOutputNotesHint,
-        hintStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Padding(
-          padding: EdgeInsets.only(bottom: 48),
-          child: Icon(Icons.notes, color: Colors.blue[700]),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      minLines: 2,
+      maxLines: 4,
+      style: PosTokens.body.copyWith(fontSize: 14),
+      decoration: productionInputDecoration(
+        label: l10n.productionOutputNotes,
+        hint: l10n.productionOutputNotesHint,
       ),
     );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _targetDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 7)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null && picked != _targetDate) {
-      setState(() {
-        _targetDate = picked;
-      });
-    }
   }
 
   Future<void> _handleSubmit() async {

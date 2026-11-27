@@ -17,7 +17,10 @@ void main() {
     supplyPriceController = TextEditingController();
   });
 
-  Widget buildTestWidget({bool isComposite = false}) {
+  Widget buildTestWidget({
+    bool isComposite = false,
+    bool allowBlankRetail = false,
+  }) {
     return MaterialApp(
       localizationsDelegates: FlipperLocalizationDelegates.delegates,
       supportedLocales: FlipperLocalizationDelegates.supportedLocales,
@@ -27,6 +30,7 @@ void main() {
           supplyPriceController: supplyPriceController,
           model: mockViewModel,
           isComposite: isComposite,
+          allowBlankRetail: allowBlankRetail,
         ),
       ),
     );
@@ -93,6 +97,21 @@ void main() {
       final validator = retailPriceField.validator;
 
       expect(validator!('abc'), 'Invalid price');
+    });
+
+    testWidgets('editing: a blank retail price is allowed, junk is not', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(allowBlankRetail: true));
+
+      final validator = tester
+          .widgetList<TextFormField>(find.byType(TextFormField))
+          .first
+          .validator!;
+
+      expect(validator(''), isNull);
+      expect(validator(null), isNull);
+      expect(validator('abc'), 'Invalid price');
     });
 
     testWidgets('accepts valid retail price', (WidgetTester tester) async {

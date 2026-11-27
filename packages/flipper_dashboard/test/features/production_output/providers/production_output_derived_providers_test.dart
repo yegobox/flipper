@@ -190,4 +190,37 @@ void main() {
       expect(chart.last.planned, 30);
     });
   });
+
+  group('day strip counts', () {
+    test('countOrdersByDay groups by local day and skips cancelled', () {
+      final tomorrow = shiftDay(_today, 1);
+      final counts = countOrdersByDay([
+        _order('a', target: _today),
+        _order('b', target: _today, status: 'completed'),
+        _order('c', target: tomorrow),
+        _order('d', target: tomorrow, status: 'cancelled'),
+      ]);
+      expect(counts, {_today: 2, tomorrow: 1});
+    });
+
+    test('productionDayCountsProvider reads the work-order stream', () async {
+      final container = ProviderContainer(
+        overrides: [
+          workOrdersStreamProvider.overrideWith(
+            (ref) => Stream.value([
+              _order('a', target: shiftDay(_today, 2)),
+              _order('b', target: shiftDay(_today, 2)),
+            ]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(productionDayCountsProvider, (_, _) {});
+      expect(container.read(productionDayCountsProvider), isEmpty);
+      await container.read(workOrdersStreamProvider.future);
+      expect(container.read(productionDayCountsProvider), {
+        shiftDay(_today, 2): 2,
+      });
+    });
+  });
 }

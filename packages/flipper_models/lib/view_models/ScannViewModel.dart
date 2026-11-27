@@ -757,11 +757,18 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     required String color,
     required String selectedProductType,
     Map<String, String>? rates,
-    required double newRetailPrice,
+
+    /// Written to every variant; null keeps each variant's own price.
+    double? newRetailPrice,
+
+    /// Written to every variant; null keeps each variant's own cost.
     double? newSupplyPrice,
     Map<String, String>? dates,
     required String productName,
     Function(List<Variant>)? onCompleteCallback,
+
+    /// Moves every variant to this category; null keeps each variant's own
+    /// (Uncategorized only for a variant that has none).
     String? categoryId,
 
     /// The product's business, for SKUs of variants added while editing.
@@ -769,13 +776,20 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   }) async {
     if (editmode) {
       try {
-        String? finalCategoryId = categoryId;
         final branchId = ProxyService.box.getBranchId()!;
-        if (finalCategoryId == null || finalCategoryId.isEmpty) {
-          final category = await ProxyService.strategy
-              .ensureUncategorizedCategory(branchId: branchId);
-          finalCategoryId = category.id;
-        }
+        final pickedCategoryId = (categoryId ?? '').isEmpty ? null : categoryId;
+        String? uncategorizedId;
+        Future<String> uncategorized() async => uncategorizedId ??=
+            (await ProxyService.strategy.ensureUncategorizedCategory(
+              branchId: branchId,
+            )).id;
+        String? ownCategory(Variant v) =>
+            (v.categoryId ?? '').isEmpty ? null : v.categoryId;
+        // The category new SKUs take their prefix from.
+        final skuCategoryId =
+            pickedCategoryId ??
+            scannedVariants.map(ownCategory).whereType<String>().firstOrNull ??
+            await uncategorized();
 
         final boxBhfId = await ProxyService.box.bhfId();
 
@@ -789,7 +803,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               : assignVariantSku(
                   businessId: businessId!,
                   siblingSkus: siblings,
-                  categoryId: finalCategoryId,
+                  categoryId: skuCategoryId,
                 ),
         );
 
@@ -875,9 +889,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
           variant.itemNm = _coerceItemNm(variant, productTitle: productName);
 
-          variant.retailPrice = newRetailPrice;
-          variant.prc = newRetailPrice;
-          variant.dftPrc = newRetailPrice;
+          if (newRetailPrice != null) {
+            variant.retailPrice = newRetailPrice;
+            variant.prc = newRetailPrice;
+            variant.dftPrc = newRetailPrice;
+          }
           if (isServiceItemType(selectedProductType)) {
             variant.itemTyCd = "3";
             variant.qty = 0;
@@ -893,8 +909,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             updatables: [variant],
             color: color,
             dcRt: variant.dcRt,
-            // because we are in edit mode if there is no category selected then user use the one on variant.
-            categoryId: finalCategoryId,
+            categoryId:
+                pickedCategoryId ??
+                ownCategory(variant) ??
+                await uncategorized(),
             selectedProductType: selectedProductType,
             productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,
