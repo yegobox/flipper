@@ -328,6 +328,8 @@ void main() {
 
       expect(v.retailPrice, 2500);
       expect(v.supplyPrice, 1150.5);
+      expect(v.retailText, '2500', reason: 'the edit check reads this text');
+      expect(v.supplyText, '1150.5');
       expect(v.name, 'Lunch combo');
       expect(v.sku, 'LUN-00001');
       expect(v.barcode, '6001');

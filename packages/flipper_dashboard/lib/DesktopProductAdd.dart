@@ -46,6 +46,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 import 'package:flipper_dashboard/features/product_entry/combo_save_values.dart';
 import 'package:flipper_dashboard/features/product_entry/combo_component_diff.dart';
+import 'package:flipper_dashboard/features/product_entry/combo_edit.dart';
 import 'package:flipper_dashboard/features/product_entry/product_save_gate.dart';
 import 'package:flipper_dashboard/features/product_entry/sku_entry.dart';
 import 'package:flipper_models/sku/sku_duplicate_check.dart';
@@ -676,10 +677,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     ref.read(selectedVariantsLocalProvider.notifier).clearState();
   }
 
-  /// Saves an edited combo in place. Its component rows are updated, added
-  /// or deleted to match the lines (never written twice), and its own variant
-  /// is updated rather than a second one made. Prices reach the variant only
-  /// when changed, as for any product edit.
+  /// Saves an edited combo in place (see [updateComboInPlace]). Prices reach
+  /// its variant only when changed, as for any product edit.
   Future<void> _updateComboProduct(
     ScannViewModel model, {
     required Product product,
@@ -689,71 +688,40 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     required String branchId,
     required String businessId,
   }) async {
-    final strategy = ProxyService.strategy;
-    final changes = planComboComponentChanges(
-      saved: _loadedComboComponents,
-      lines: [
-        for (final line in lines)
-          (variantId: line.variant.id, qty: line.quantity),
-      ],
-    );
     final retailPrice = editedPrice(
-      text: retailPriceController.text,
+      text: values.retailText,
       loadedText: _loadedRetailText,
     );
-    for (final row in changes.upserts) {
-      await strategy.saveComposite(
-        composite: Composite(
-          id: row.id,
-          businessId: businessId,
-          productId: product.id,
-          qty: row.qty,
-          actualPrice: retailPrice ?? comboVariant.retailPrice ?? 0,
-          branchId: branchId,
-          variantId: row.variantId,
-        ),
-      );
-    }
-    for (final id in changes.deleteIds) {
-      await strategy.flipperDelete(id: id, endPoint: 'composite');
-    }
-    talker.info(
-      'Combo ${product.id} edited: ${changes.upserts.length} component(s), '
-      '${changes.deleteIds.length} removed',
-    );
-
-    await strategy.updateProduct(
+    await updateComboInPlace(
+      strategy: ProxyService.strategy,
       productId: product.id,
       branchId: branchId,
       businessId: businessId,
-      name: values.name,
-      isComposite: true,
-    );
-
-    // The combo's own variant (named after the combo when it was made): its
-    // name, SKU, bar code and kind from the form, then the same update every
-    // product edit runs.
-    final typedSku = values.sku;
-    if (typedSku.isNotEmpty) comboVariant.sku = typedSku;
-    comboVariant.bcd = values.barcode;
-    comboVariant.name = values.name;
-    final itemType = ref.read(madeInProductionProvider) ? '2' : '3';
-    comboVariant.itemTyCd = itemType;
-    await model.bulkUpdateVariants(
-      true,
-      color: pickerColor.toHex(),
-      categoryId: selectedCategoryId,
-      businessId: businessId,
-      productName: values.name,
-      selectedProductType: itemType,
-      newRetailPrice: retailPrice,
-      newSupplyPrice: editedPrice(
-        text: supplyPriceController.text,
-        loadedText: _loadedSupplyText,
+      comboVariant: comboVariant,
+      values: values,
+      madeInProduction: ref.read(madeInProductionProvider),
+      saved: _loadedComboComponents,
+      lines: lines,
+      retailPrice: retailPrice,
+      updateVariant: (itemType) => model.bulkUpdateVariants(
+        true,
+        color: pickerColor.toHex(),
+        categoryId: selectedCategoryId,
+        businessId: businessId,
+        productName: values.name,
+        selectedProductType: itemType,
+        newRetailPrice: retailPrice,
+        newSupplyPrice: editedPrice(
+          text: values.supplyText,
+          loadedText: _loadedSupplyText,
+        ),
+        rates: _rates,
+        dates: _dates,
+        onCompleteCallback: _addVariantsToProvider,
       ),
-      rates: _rates,
-      dates: _dates,
-      onCompleteCallback: _addVariantsToProvider,
+      // A failed save leaves the rows it already wrote as the baseline, so a
+      // retry updates them instead of writing a new line a second time.
+      onComponentsWritten: (rows) => _loadedComboComponents = rows,
     );
   }
 
@@ -1402,48 +1370,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     barCodeController.text = comboVariant.bcd ?? '';
     ref.read(madeInProductionProvider.notifier).state =
         comboVariant.itemTyCd == '2';
-
-    final strategy = ProxyService.strategy;
-    final saved = await strategy.composites(
+    final combo = await loadComboComponents(
+      strategy: ProxyService.strategy,
       productId: product.id,
-      localOnly: true,
     );
-    final lines = <VariantState>[];
-    final loaded = <SavedComboComponent>[];
-    final unresolved = <String>{};
-    for (final row in saved) {
-      final variantId = row.variantId;
-      if (variantId == null || variantId.isEmpty) continue;
-      if (unresolved.contains(variantId)) continue;
-      if (lines.any((l) => l.variant.id == variantId)) {
-        loaded.add((id: row.id, variantId: variantId, qty: row.qty ?? 1));
-        continue;
-      }
-      final component = await strategy.getVariant(id: variantId);
-      if (component == null) {
-        // Not on this device (yet): leave its row alone rather than let the
-        // save read it as removed and delete it.
-        unresolved.add(variantId);
-        continue;
-      }
-      loaded.add((id: row.id, variantId: variantId, qty: row.qty ?? 1));
-      lines.add(
-        VariantState(
-          variant: VVariant(
-            productName: component.productName ?? component.name,
-            name: component.name,
-            id: component.id,
-            productId: component.productId ?? '',
-            retailPrice: component.retailPrice ?? 0,
-            supplyPrice: component.supplyPrice ?? 0,
-          ),
-          quantity: row.qty ?? 1,
-        ),
-      );
-    }
     if (!mounted) return;
-    _loadedComboComponents = loaded;
-    ref.read(selectedVariantsLocalProvider.notifier).loadComponents(lines);
+    _loadedComboComponents = combo.saved;
+    ref
+        .read(selectedVariantsLocalProvider.notifier)
+        .loadComponents(combo.lines);
   }
 
   @override
