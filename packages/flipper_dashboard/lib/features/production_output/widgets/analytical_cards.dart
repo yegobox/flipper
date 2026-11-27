@@ -1,5 +1,8 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+
+import '../../../theme/pos_tokens.dart';
+import 'production_ui.dart';
 import '../models/production_output_models.dart';
 
 /// SAP Fiori-inspired Analytical Cards widget
@@ -146,7 +149,7 @@ class AnalyticalCards extends StatelessWidget {
     return Container(
       height: 8,
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: PosTokens.line,
         borderRadius: BorderRadius.circular(4),
       ),
       child: FractionallySizedBox(
@@ -171,7 +174,7 @@ class AnalyticalCards extends StatelessWidget {
             margin: EdgeInsets.only(right: index < (isMobile ? 1 : 2) ? 16 : 0),
             height: isMobile ? 100 : 160,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: PosTokens.surface2,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Center(
@@ -209,17 +212,7 @@ class _AnalyticalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(isCompact ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: productionCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,7 +223,7 @@ class _AnalyticalCard extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: isCompact ? 12 : 14,
-                    color: Colors.grey[600],
+                    color: PosTokens.ink3,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -252,7 +245,7 @@ class _AnalyticalCard extends StatelessWidget {
             subtitle,
             style: TextStyle(
               fontSize: isCompact ? 11 : 12,
-              color: Colors.grey[500],
+              color: PosTokens.ink3,
             ),
           ),
           SizedBox(height: isCompact ? 12 : 16),
@@ -317,17 +310,7 @@ class _VarianceReasonCard extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.all(isCompact ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: productionCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -335,7 +318,7 @@ class _VarianceReasonCard extends StatelessWidget {
             l10n.productionOutputVarianceReasons,
             style: TextStyle(
               fontSize: isCompact ? 12 : 14,
-              color: Colors.grey[600],
+              color: PosTokens.ink3,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -347,7 +330,7 @@ class _VarianceReasonCard extends StatelessWidget {
                 child: Text(
                   l10n.productionOutputNoData,
                   style: TextStyle(
-                    color: Colors.grey[400],
+                    color: PosTokens.ink4,
                     fontSize: isCompact ? 12 : 14,
                   ),
                 ),
@@ -375,22 +358,7 @@ class _VarianceReasonCard extends StatelessWidget {
     return reason.substring(0, 1).toUpperCase() + reason.substring(1);
   }
 
-  Color _getReasonColor(String reason) {
-    switch (reason.toLowerCase()) {
-      case 'machine':
-        return Colors.orange;
-      case 'material':
-        return Colors.blue;
-      case 'labor':
-        return Colors.purple;
-      case 'quality':
-        return Colors.red;
-      case 'planning':
-        return Colors.teal;
-      default:
-        return Colors.grey;
-    }
-  }
+  Color _getReasonColor(String reason) => Color(varianceReasonColor(reason));
 }
 
 /// Individual variance reason row
@@ -427,7 +395,7 @@ class _VarianceReasonRow extends StatelessWidget {
               reason,
               style: TextStyle(
                 fontSize: isCompact ? 11 : 12,
-                color: Colors.grey[700],
+                color: PosTokens.ink2,
               ),
             ),
           ),
@@ -436,7 +404,7 @@ class _VarianceReasonRow extends StatelessWidget {
             style: TextStyle(
               fontSize: isCompact ? 11 : 12,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+              color: PosTokens.ink1,
             ),
           ),
           const SizedBox(width: 8),
@@ -445,7 +413,7 @@ class _VarianceReasonRow extends StatelessWidget {
             child: Container(
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: PosTokens.line,
                 borderRadius: BorderRadius.circular(2),
               ),
               child: FractionallySizedBox(

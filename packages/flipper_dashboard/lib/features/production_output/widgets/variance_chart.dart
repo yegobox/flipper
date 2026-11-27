@@ -1,5 +1,8 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+
+import '../../../theme/pos_tokens.dart';
+import 'production_ui.dart';
 import '../models/production_output_models.dart';
 
 /// SAP Fiori-inspired Smart Chart widget for variance visualization
@@ -28,17 +31,7 @@ class VarianceChart extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: productionCardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -66,7 +59,7 @@ class VarianceChart extends StatelessWidget {
         const Spacer(),
         Text(
           context.flipperL10n.productionOutputLastDays(dataPoints.length),
-          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+          style: TextStyle(fontSize: 12, color: PosTokens.ink3),
         ),
       ],
     );
@@ -87,7 +80,7 @@ class VarianceChart extends StatelessWidget {
         ),
         const SizedBox(width: 16),
         _LegendItem(
-          color: Colors.orange,
+          color: PosTokens.warnAmber,
           label: l10n.productionOutputVariancePercent,
           isDashed: true,
         ),
@@ -151,7 +144,7 @@ class VarianceChart extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: Colors.grey[200]!,
+                  color: PosTokens.line,
                   width: index == 0 ? 0 : 1,
                 ),
               ),
@@ -189,7 +182,7 @@ class VarianceChart extends StatelessWidget {
                 width: barWidth,
                 height: plannedHeight.clamp(0.0, chartHeight - 20),
                 decoration: BoxDecoration(
-                  color: Color(VarianceColors.neutral).withOpacity(0.7),
+                  color: Color(VarianceColors.neutral).withValues(alpha: 0.7),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(2),
                   ),
@@ -202,8 +195,8 @@ class VarianceChart extends StatelessWidget {
                 height: actualHeight.clamp(0.0, chartHeight - 20),
                 decoration: BoxDecoration(
                   color: point.actual >= point.planned
-                      ? Color(VarianceColors.positive).withOpacity(0.7)
-                      : Color(VarianceColors.negative).withOpacity(0.7),
+                      ? Color(VarianceColors.positive).withValues(alpha: 0.7)
+                      : Color(VarianceColors.negative).withValues(alpha: 0.7),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(2),
                   ),
@@ -215,7 +208,7 @@ class VarianceChart extends StatelessWidget {
           // X-axis label
           Text(
             _formatDayLabel(l10n, point.date),
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 10, color: PosTokens.ink3),
           ),
         ],
       ),
@@ -224,29 +217,23 @@ class VarianceChart extends StatelessWidget {
 
   Widget _buildLoadingState() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: productionCardDecoration(),
       child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: productionCardDecoration(),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.bar_chart, size: 48, color: Colors.grey[300]),
+            Icon(Icons.bar_chart, size: 48, color: PosTokens.lineStrong),
             const SizedBox(height: 16),
             Text(
               context.flipperL10n.productionOutputNoDataAvailable,
-              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 16, color: PosTokens.ink3),
             ),
           ],
         ),
@@ -295,7 +282,7 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+        Text(label, style: TextStyle(fontSize: 11, color: PosTokens.ink3)),
       ],
     );
   }
@@ -313,7 +300,7 @@ class _VarianceLinePainter extends CustomPainter {
     if (dataPoints.length < 2) return;
 
     final paint = Paint()
-      ..color = Colors.orange
+      ..color = PosTokens.warnAmber
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -342,7 +329,7 @@ class _VarianceLinePainter extends CustomPainter {
 
     // Draw dots at each point
     final dotPaint = Paint()
-      ..color = Colors.orange
+      ..color = PosTokens.warnAmber
       ..style = PaintingStyle.fill;
 
     for (int i = 0; i < dataPoints.length; i++) {

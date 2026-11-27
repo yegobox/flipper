@@ -13,10 +13,16 @@ void main() {
   Future<ProviderContainer> pumpBar(
     WidgetTester tester, {
     DateTime? day,
+    Map<DateTime, int> counts = const {},
+    Size size = const Size(1280, 800),
   }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final container = ProviderContainer(
       overrides: [
         if (day != null) productionDayProvider.overrideWith((ref) => day),
+        productionDayCountsProvider.overrideWithValue(counts),
       ],
     );
     addTearDown(container.dispose);
@@ -80,7 +86,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.calendar_today));
     await tester.pumpAndSettle();
     // One tap picks; there is no OK step.
-    await tester.tap(find.text('12'));
+    await tester.tap(
+      find.byKey(const ValueKey('flipper-date-picker-day-2026-3-12')),
+    );
     await tester.pumpAndSettle();
 
     expect(container.read(productionDayProvider), DateTime(2026, 3, 12));
@@ -90,6 +98,61 @@ void main() {
     expect(shiftDay(DateTime(2026, 3, 1), -1), DateTime(2026, 2, 28));
     expect(shiftDay(DateTime(2026, 12, 31), 1), DateTime(2027, 1, 1));
     expect(shiftDay(DateTime(2026, 11, 23), 0), DateTime(2026, 11, 23));
+  });
+
+  Key dayKey(DateTime d) =>
+      ValueKey('production-day-${d.year}-${d.month}-${d.day}');
+
+  testWidgets('shows the week around the day with each day\'s count', (
+    tester,
+  ) async {
+    // Wednesday 11 March 2026; en weeks start on Sunday.
+    final wednesday = DateTime(2026, 3, 11);
+    await pumpBar(
+      tester,
+      day: wednesday,
+      counts: {DateTime(2026, 3, 9): 3, wednesday: 1},
+    );
+    for (var d = 8; d <= 14; d++) {
+      expect(find.byKey(dayKey(DateTime(2026, 3, d))), findsOneWidget);
+    }
+    expect(find.byKey(dayKey(DateTime(2026, 3, 7))), findsNothing);
+    expect(find.byKey(dayKey(DateTime(2026, 3, 15))), findsNothing);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+  });
+
+  testWidgets('tapping a day of the week shows it', (tester) async {
+    final container = await pumpBar(tester, day: DateTime(2026, 3, 11));
+    await tester.tap(find.byKey(dayKey(DateTime(2026, 3, 13))));
+    await tester.pump();
+    expect(container.read(productionDayProvider), DateTime(2026, 3, 13));
+  });
+
+  testWidgets('phones stack the controls over the seven days', (tester) async {
+    final container = await pumpBar(
+      tester,
+      day: DateTime(2026, 3, 11),
+      size: const Size(390, 844),
+    );
+    expect(tester.takeException(), isNull);
+    final first = tester.getTopLeft(find.byKey(dayKey(DateTime(2026, 3, 8))));
+    final calendar = tester.getTopLeft(
+      find.byKey(const ValueKey('production-day-calendar')),
+    );
+    expect(first.dy, greaterThan(calendar.dy));
+    await tester.tap(find.byKey(dayKey(DateTime(2026, 3, 14))));
+    await tester.pump();
+    expect(container.read(productionDayProvider), DateTime(2026, 3, 14));
+  });
+
+  test('weekStart follows the locale week start', () {
+    final wednesday = DateTime(2026, 3, 11);
+    expect(ProductionDayBar.weekStart(wednesday, 0), DateTime(2026, 3, 8));
+    expect(ProductionDayBar.weekStart(wednesday, 1), DateTime(2026, 3, 9));
+    final sunday = DateTime(2026, 3, 15);
+    expect(ProductionDayBar.weekStart(sunday, 1), DateTime(2026, 3, 9));
+    expect(ProductionDayBar.weekStart(sunday, 0), sunday);
   });
 
   testWidgets('on desktop the calendar opens under its button', (tester) async {

@@ -1,5 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+
+import '../../../theme/pos_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'work_order_form.dart';
@@ -42,13 +44,13 @@ class WorkOrderBottomSheet {
                     height: 4,
                     margin: EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: PosTokens.lineStrong,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   // Header
                   _buildHeader(context, workOrderId),
-                  Divider(height: 1, color: Colors.grey[200]),
+                  Divider(height: 1, color: PosTokens.line),
                   // Content - scrollable form
                   Flexible(
                     child: SingleChildScrollView(
@@ -88,12 +90,12 @@ class WorkOrderBottomSheet {
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: PosTokens.blueTint,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               isEdit ? Icons.edit_outlined : Icons.add_circle_outline,
-              color: Colors.blue,
+              color: PosTokens.blue,
               size: 24,
             ),
           ),
@@ -104,17 +106,17 @@ class WorkOrderBottomSheet {
                   ? context.flipperL10n.productionOutputEditWorkOrder
                   : context.flipperL10n.productionOutputCreateWorkOrder,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
+                color: PosTokens.ink1,
               ),
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, color: Colors.grey[600]),
+            icon: Icon(Icons.close, color: PosTokens.ink3),
             onPressed: () => Navigator.of(context).pop(),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.grey[100],
+              backgroundColor: PosTokens.surface2,
               padding: EdgeInsets.all(8),
             ),
           ),
