@@ -1606,6 +1606,9 @@
   "@clear": {
     "description": "Clears the current input"
   },
+  "datePickerToday": "Leo",
+  "datePickerTomorrow": "Kesho",
+  "datePickerNextMonday": "Jumatatu ijayo",
   "addProductAction": "Ongeza bidhaa",
   "@addProductAction": {
     "description": "Tooltip for adding a single product"

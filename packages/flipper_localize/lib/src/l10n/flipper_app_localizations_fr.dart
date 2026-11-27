@@ -1490,6 +1490,15 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get clear => 'Effacer';
 
   @override
+  String get datePickerToday => 'Aujourd\'hui';
+
+  @override
+  String get datePickerTomorrow => 'Demain';
+
+  @override
+  String get datePickerNextMonday => 'Lundi prochain';
+
+  @override
   String get addProductAction => 'Ajouter un produit';
 
   @override

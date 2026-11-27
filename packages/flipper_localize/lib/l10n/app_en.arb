@@ -1632,6 +1632,18 @@
     "@clear": {
         "description": "Clears the current input"
     },
+    "datePickerToday": "Today",
+    "@datePickerToday": {
+        "description": "Date picker quick choice: pick today"
+    },
+    "datePickerTomorrow": "Tomorrow",
+    "@datePickerTomorrow": {
+        "description": "Date picker quick choice: pick tomorrow"
+    },
+    "datePickerNextMonday": "Next Monday",
+    "@datePickerNextMonday": {
+        "description": "Date picker quick choice: pick the coming Monday"
+    },
     "addProductAction": "Add product",
     "@addProductAction": {
         "description": "Tooltip for adding a single product"

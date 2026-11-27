@@ -1,3 +1,5 @@
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
@@ -156,9 +158,10 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
     return gross < 0 ? 0 : gross;
   }
 
-  Future<void> _pickArrival() async {
-    final picked = await showDatePicker(
+  Future<void> _pickArrival([BuildContext? anchor]) async {
+    final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: _checkIn,
       firstDate: hotelDateOnly(DateTime.now()),
       lastDate: hotelDateOnly(DateTime.now()).add(const Duration(days: 730)),
@@ -481,41 +484,43 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
           ),
         ),
         const SizedBox(height: 6),
-        InkWell(
-          onTap: _pickArrival,
-          borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-          child: Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: HotelTokens.surface2,
-              borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-              border: Border.all(color: HotelTokens.line),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 17,
-                  color: HotelTokens.ink3,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '${DateFormat('EEE d MMM').format(_checkIn)}  →  '
-                  '${DateFormat('EEE d MMM').format(_checkOut)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: HotelTokens.ink1,
+        Builder(
+          builder: (anchor) => InkWell(
+            onTap: () => _pickArrival(anchor),
+            borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+            child: Container(
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: HotelTokens.surface2,
+                borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+                border: Border.all(color: HotelTokens.line),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 17,
+                    color: HotelTokens.ink3,
                   ),
-                ),
-                const Spacer(),
-                const Icon(
-                  Icons.expand_more,
-                  size: 18,
-                  color: HotelTokens.ink3,
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Text(
+                    '${DateFormat('EEE d MMM').format(_checkIn)}  →  '
+                    '${DateFormat('EEE d MMM').format(_checkOut)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: HotelTokens.ink1,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.expand_more,
+                    size: 18,
+                    color: HotelTokens.ink3,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

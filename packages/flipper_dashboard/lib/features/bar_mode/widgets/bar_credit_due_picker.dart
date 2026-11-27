@@ -1,6 +1,8 @@
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_credit_utils.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -40,10 +42,11 @@ class BarCreditDuePicker extends StatelessWidget {
   static DateTime _inDays(int days) =>
       DateTime.now().toUtc().add(Duration(days: days));
 
-  Future<void> _pickDate(BuildContext context) async {
+  Future<void> _pickDate(BuildContext context, [BuildContext? anchor]) async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: now.add(const Duration(days: 14)),
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
@@ -100,11 +103,13 @@ class BarCreditDuePicker extends StatelessWidget {
                 l10n.uiTicketOneMonth,
                 () => Navigator.of(context).pop(_inDays(30)),
               ),
-              _option(
-                context,
-                l10n.uiTicketSelectDate,
-                () => _pickDate(context),
-                icon: Icons.calendar_today_outlined,
+              Builder(
+                builder: (anchor) => _option(
+                  context,
+                  l10n.uiTicketSelectDate,
+                  () => _pickDate(context, anchor),
+                  icon: Icons.calendar_today_outlined,
+                ),
               ),
             ],
           ),

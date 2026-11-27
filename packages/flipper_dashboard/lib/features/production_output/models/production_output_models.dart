@@ -1,18 +1,38 @@
 import 'package:flipper_localize/flipper_localize.dart';
 
-/// SAP Fiori-inspired color semantics for production output variance
+/// Variance colours, the POS register's semantic tokens (`PosTokens`):
+/// gain green, loss red, brand blue and warning amber.
 class VarianceColors {
-  /// Positive variance (actual >= planned) - Green
-  static const positive = 0xFF107C10;
+  /// Positive variance (actual >= planned): PosTokens.gain.
+  static const positive = 0xFF16A34A;
 
-  /// Negative variance (actual < planned) - Red
-  static const negative = 0xFFD83B01;
+  /// Negative variance (actual < planned): PosTokens.loss.
+  static const negative = 0xFFE5484D;
 
-  /// Neutral/informational - Blue
-  static const neutral = 0xFF0078D4;
+  /// Neutral/informational: PosTokens.blue.
+  static const neutral = 0xFF2563EB;
 
-  /// Warning threshold (90-100% efficiency)
-  static const warning = 0xFFFFB900;
+  /// Warning threshold (90-100% efficiency): PosTokens.warnAmber.
+  static const warning = 0xFFE08600;
+}
+
+/// One colour per variance reason, shared by the breakdown card and the
+/// reason picker (hues from the chart palette, `FlipperChartColors`).
+int varianceReasonColor(String reason) {
+  switch (reason.toLowerCase()) {
+    case 'machine':
+      return 0xFFEB6834;
+    case 'material':
+      return 0xFF2563EB;
+    case 'labor':
+      return 0xFF4A3AA7;
+    case 'quality':
+      return 0xFFE34948;
+    case 'planning':
+      return 0xFF1BAF7A;
+    default:
+      return 0xFF7E8AA0;
+  }
 }
 
 /// SAP-aligned variance reason categories
@@ -78,10 +98,10 @@ enum VarianceReasonCategory {
 
 /// Work order status for display
 enum WorkOrderStatus {
-  planned('Planned', 0xFF0078D4),
-  inProgress('In Progress', 0xFFFFB900),
-  completed('Completed', 0xFF107C10),
-  cancelled('Cancelled', 0xFF797775);
+  planned('Planned', 0xFF2563EB),
+  inProgress('In Progress', 0xFFE08600),
+  completed('Completed', 0xFF16A34A),
+  cancelled('Cancelled', 0xFF7E8AA0);
 
   const WorkOrderStatus(this.label, this.color);
 

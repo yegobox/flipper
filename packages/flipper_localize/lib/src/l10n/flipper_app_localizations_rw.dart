@@ -1475,6 +1475,15 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get clear => 'Kuraho';
 
   @override
+  String get datePickerToday => 'Uyu munsi';
+
+  @override
+  String get datePickerTomorrow => 'Ejo';
+
+  @override
+  String get datePickerNextMonday => 'Ku wa mbere utaha';
+
+  @override
   String get addProductAction => 'Ongeramo igicuruzwa';
 
   @override

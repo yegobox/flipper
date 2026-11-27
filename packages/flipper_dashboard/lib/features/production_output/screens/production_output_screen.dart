@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/production_output_provider.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
+import '../../../theme/pos_tokens.dart';
 import '../models/production_output_models.dart';
 import '../providers/production_output_derived_providers.dart';
 import '../services/production_output_service.dart';
@@ -12,23 +13,23 @@ import '../widgets/analytical_cards.dart';
 import '../widgets/variance_chart.dart';
 import '../widgets/work_order_table.dart';
 import '../widgets/work_order_form.dart';
-import '../widgets/variance_reason_dialog.dart';
 import '../widgets/work_order_bottom_sheet.dart';
 import '../widgets/production_day_bar.dart';
+import '../widgets/production_dialogs.dart';
+import '../widgets/production_ui.dart';
 import 'package:flipper_ui/dialogs/WorkOrderDetailsDialog.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
-import '../../stock_recount/stock_recount_tokens.dart';
-import '../../stock_recount/stock_recount_icons.dart';
-import '../../stock_recount/stock_recount_helpers.dart';
-import '../../stock_recount/stock_recount_ui.dart';
 
-/// Main screen for Production Output feature
+/// Below this width Production is the phone layout: app bar, stacked day
+/// strip, order cards and a bottom-sheet form.
+const double kProductionPhoneBreakpoint = 600;
+
+/// Production Output: plan work orders per day and record what was made.
 ///
-/// SAP Fiori Object Page layout with:
-/// - Header KPIs
-/// - Analytical cards
-/// - Variance chart
-/// - Work orders table
+/// Top to bottom: the day strip with the page actions, the day's KPIs, the
+/// day's orders (table on desktop, cards on phones), orders carried over from
+/// earlier days, the efficiency / completion / reason cards, then the week's
+/// variance chart.
 class ProductionOutputScreen extends ConsumerStatefulWidget {
   const ProductionOutputScreen({Key? key, @visibleForTesting this.service})
     : super(key: key);
@@ -48,6 +49,9 @@ class _ProductionOutputScreenState
 
   bool _showCreateForm = false;
 
+  bool get _isPhone =>
+      MediaQuery.sizeOf(context).width < kProductionPhoneBreakpoint;
+
   /// Re-registers the Ditto observers. Writes reach the UI on their own, so
   /// this is only for the explicit pull-to-refresh / refresh-button gesture.
   Future<void> _refresh() async {
@@ -56,30 +60,35 @@ class _ProductionOutputScreenState
     await ref.read(workOrdersStreamProvider.future);
   }
 
-  void _openCreateWorkOrder(bool isMobile) {
-    if (isMobile) {
-      // Show bottom sheet on mobile
+  Future<void> _createWorkOrder(Map<String, dynamic> data) async {
+    final targetDate = data['targetDate'] as DateTime;
+    await _service.createWorkOrder(
+      variantId: data['variantId'] as String,
+      variantName: data['variantName'] as String?,
+      plannedQuantity: data['plannedQuantity'] as double,
+      targetDate: targetDate,
+      shiftId: data['shiftId'] as String?,
+      notes: data['notes'] as String?,
+    );
+    // No refetch: the Ditto observer behind workOrdersStreamProvider pushes
+    // the new order as soon as its document lands. Show its day, so an order
+    // planned for tomorrow is on screen instead of seeming to vanish.
+    if (mounted) {
+      ref.read(productionDayProvider.notifier).state = localDay(targetDate);
+    }
+  }
+
+  /// One entry point for every "new work order" button: a bottom sheet on
+  /// phones, the inline form on desktop.
+  void _openCreateWorkOrder() {
+    if (_isPhone) {
       WorkOrderBottomSheet.show(
         context: context,
         ref: ref,
-        onSubmit: (data) async {
-          await _service.createWorkOrder(
-            variantId: data['variantId'] as String,
-            variantName: data['variantName'] as String?,
-            plannedQuantity: data['plannedQuantity'] as double,
-            targetDate: data['targetDate'] as DateTime,
-            shiftId: data['shiftId'] as String?,
-            notes: data['notes'] as String?,
-          );
-          // No refetch: the Ditto observer behind workOrdersStreamProvider
-          // pushes the new order as soon as its document lands.
-        },
+        onSubmit: _createWorkOrder,
       );
     } else {
-      // Toggle inline form on desktop
-      setState(() {
-        _showCreateForm = !_showCreateForm;
-      });
+      setState(() => _showCreateForm = true);
     }
   }
 
@@ -94,170 +103,84 @@ class _ProductionOutputScreenState
     final summary = summaryAsync.asData?.value ?? ProductionSummary.empty;
     final chartData = chartAsync.asData?.value ?? const <VarianceDataPoint>[];
     final isSummaryLoading = summaryAsync.isLoading;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
+    final isPhone = _isPhone;
     final l10n = context.flipperL10n;
+    const gap = SizedBox(height: 16);
+
+    final chart = SizedBox(
+      height: isPhone ? 220 : 300,
+      child: VarianceChart(
+        dataPoints: chartData,
+        isLoading: chartAsync.isLoading,
+      ),
+    );
+    final cards = AnalyticalCards(
+      summary: summary,
+      isLoading: isSummaryLoading,
+      isMobile: isPhone,
+    );
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: PosTokens.posBg,
+      appBar: isPhone ? _phoneAppBar(l10n) : null,
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: CustomScrollView(
           slivers: [
-            // App bar
-            SliverAppBar(
-              automaticallyImplyLeading: isMobile,
-              pinned: true,
-              backgroundColor: Colors.white,
-              elevation: 1,
-              title: Row(
-                children: [
-                  Icon(Icons.factory, color: Color(VarianceColors.neutral)),
-                  const SizedBox(width: 8),
-                  Text(
-                    isMobile ? l10n.production : l10n.productionOutputTitle,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 4.0,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.refresh,
-                      color: Colors.black54,
-                      size: 20,
-                    ),
-                    onPressed: _refresh,
-                    tooltip: l10n.refresh,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.grey[50],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Colors.grey[300]!),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    right: 16.0,
-                    top: 8,
-                    bottom: 8,
-                    left: 4,
-                  ),
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openCreateWorkOrder(isMobile),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(
-                      isMobile
-                          ? l10n.productionOutputNew
-                          : l10n.productionOutputNewOrder,
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            // Content
             SliverPadding(
-              padding: EdgeInsets.all(isMobile ? 12 : 16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // Create form (collapsible)
-                  if (_showCreateForm) ...[
+              padding: EdgeInsets.all(isPhone ? 12 : 20),
+              sliver: SliverList.list(
+                children: [
+                  _ProductionToolbar(
+                    isPhone: isPhone,
+                    canPop: Navigator.of(context).canPop(),
+                    onRefresh: _refresh,
+                    onNew: _openCreateWorkOrder,
+                  ),
+                  gap,
+                  if (_showCreateForm && !isPhone) ...[
                     WorkOrderForm(
                       onSubmit: (data) async {
-                        await _service.createWorkOrder(
-                          variantId: data['variantId'] as String,
-                          variantName: data['variantName'] as String?,
-                          plannedQuantity: data['plannedQuantity'] as double,
-                          targetDate: data['targetDate'] as DateTime,
-                          shiftId: data['shiftId'] as String?,
-                          notes: data['notes'] as String?,
-                        );
-                        setState(() {
-                          _showCreateForm = false;
-                        });
+                        await _createWorkOrder(data);
+                        if (mounted) setState(() => _showCreateForm = false);
                       },
-                      onCancel: () {
-                        setState(() {
-                          _showCreateForm = false;
-                        });
-                      },
+                      onCancel: () => setState(() => _showCreateForm = false),
                     ),
-                    const SizedBox(height: 16),
+                    gap,
                   ],
-                  // The day everything below counts
-                  const ProductionDayBar(),
-                  const SizedBox(height: 8),
-                  // Object Page Header with KPIs
                   ObjectPageHeader(
                     summary: summary,
                     isLoading: isSummaryLoading,
-                    isMobile: isMobile,
+                    isMobile: isPhone,
                   ),
-                  const SizedBox(height: 16),
-                  // Analytical Cards
-                  AnalyticalCards(
-                    summary: summary,
-                    isLoading: isSummaryLoading,
-                    isMobile: isMobile,
-                  ),
-                  const SizedBox(height: 16),
-                  // Variance Chart
-                  SizedBox(
-                    height: isMobile ? 220 : 280,
-                    child: VarianceChart(
-                      dataPoints: chartData,
-                      isLoading: chartAsync.isLoading,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Work Orders Table - use card list on mobile
-                  if (isMobile)
+                  gap,
+                  if (isPhone)
                     _buildMobileWorkOrdersList(workOrdersAsync)
                   else
-                    SizedBox(
-                      height: 400,
-                      child: workOrdersAsync.when(
-                        data: (workOrders) => WorkOrderTable(
-                          workOrders: workOrders,
-                          isLoading: false,
-                          onRowTap: (wo) => _showWorkOrderDetails(wo),
-                          onRecordOutput: (wo) => _showRecordOutputDialog(wo),
-                          onStart: (wo) => _startWorkOrder(wo),
-                          onComplete: (wo) => _completeWorkOrder(wo),
-                        ),
-                        loading: () => const WorkOrderTable(
-                          workOrders: [],
-                          isLoading: true,
-                        ),
-                        error: (error, stack) => Center(
-                          child: _buildWorkOrdersErrorCard(error, stack),
-                        ),
+                    workOrdersAsync.when(
+                      data: (workOrders) => WorkOrderTable(
+                        workOrders: workOrders,
+                        isLoading: false,
+                        onRowTap: _showWorkOrderDetails,
+                        onRecordOutput: _showRecordOutputDialog,
+                        onStart: _startWorkOrder,
+                        onComplete: _completeWorkOrder,
+                        onCreate: _openCreateWorkOrder,
                       ),
+                      loading: () =>
+                          const WorkOrderTable(workOrders: [], isLoading: true),
+                      error: (error, stack) =>
+                          _buildWorkOrdersErrorCard(error, stack),
                     ),
                   if (carriedOver.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                    gap,
                     _buildCarriedOverList(carriedOver),
                   ],
-                ]),
+                  gap,
+                  cards,
+                  gap,
+                  chart,
+                ],
               ),
             ),
           ],
@@ -266,158 +189,94 @@ class _ProductionOutputScreenState
     );
   }
 
-  /// Mobile-friendly work orders list using cards instead of table
-  Widget _buildMobileWorkOrdersList(AsyncValue workOrdersAsync) {
-    return workOrdersAsync.when(
-      data: (workOrders) {
-        if (workOrders.isEmpty) {
-          return _buildEmptyWorkOrdersCard();
-        }
-        final l10n = context.flipperL10n;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.assignment,
-                    color: Color(VarianceColors.neutral),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.productionOutputWorkOrders,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    l10n.productionOutputItemsCount(workOrders.length),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
+  PreferredSizeWidget _phoneAppBar(FlipperAppLocalizations l10n) {
+    return AppBar(
+      backgroundColor: PosTokens.surface,
+      surfaceTintColor: Colors.transparent,
+      foregroundColor: PosTokens.ink1,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      shape: const Border(bottom: BorderSide(color: PosTokens.line)),
+      titleSpacing: 4,
+      title: Text(l10n.production, style: PosTokens.sectionTitle),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, size: PosTokens.iconMd),
+          color: PosTokens.ink2,
+          tooltip: l10n.refresh,
+          onPressed: _refresh,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 12, left: 4),
+          child: ElevatedButton.icon(
+            onPressed: _openCreateWorkOrder,
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(l10n.productionOutputNew),
+            style: productionPrimaryButtonStyle().copyWith(
+              minimumSize: const WidgetStatePropertyAll(
+                Size(0, PosTokens.controlHeightSm + 4),
               ),
             ),
-            ...workOrders.map((wo) => _buildWorkOrderCard(wo)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Phone list: one card per order.
+  Widget _buildMobileWorkOrdersList(AsyncValue<List<WorkOrder>> async) {
+    return async.when(
+      data: (workOrders) {
+        if (workOrders.isEmpty) return _buildEmptyWorkOrdersCard();
+        final l10n = context.flipperL10n;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _SectionHeading(
+              icon: Icons.assignment_outlined,
+              title: l10n.productionOutputWorkOrders,
+              trailing: l10n.productionOutputItemsCount(workOrders.length),
+            ),
+            ...workOrders.map(_buildWorkOrderCard),
           ],
         );
       },
       loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: PosTokens.blue,
+          ),
         ),
       ),
-      error: (error, stack) => _buildWorkOrdersErrorCard(error, stack),
+      error: _buildWorkOrdersErrorCard,
     );
   }
 
   Widget _buildWorkOrdersErrorCard(Object error, StackTrace? stack) {
     talker.error('ProductionOutput: failed to load work orders', error, stack);
     final l10n = context.flipperL10n;
-    return stockRecountCard(
-      borderColor: StockRecountTokens.negBorder,
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-      child: Center(
-        child: Column(
-          children: [
-            Container(
-              width: 92,
-              height: 92,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: StockRecountTokens.negTint,
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: 40,
-                color: StockRecountTokens.neg,
-              ),
-            ),
-            const SizedBox(height: 22),
-            Text(
-              l10n.productionOutputLoadFailed,
-              style: StockRecountHelpers.text(
-                size: 19,
-                weight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              l10n.productionOutputCheckConnection,
-              textAlign: TextAlign.center,
-              style: StockRecountHelpers.text(
-                size: 14.5,
-                color: StockRecountTokens.ink3,
-              ),
-            ),
-            const SizedBox(height: 22),
-            StockRecountPrimaryButton(
-              label: l10n.retry,
-              leading: const Icon(Icons.refresh, size: 18, color: Colors.white),
-              onPressed: _refresh,
-            ),
-          ],
-        ),
-      ),
+    return ProductionEmptyState(
+      icon: Icons.error_outline,
+      tone: PosTokens.loss,
+      title: l10n.productionOutputLoadFailed,
+      message: l10n.productionOutputCheckConnection,
+      actionLabel: l10n.retry,
+      actionIcon: Icons.refresh,
+      onAction: _refresh,
     );
   }
 
   Widget _buildEmptyWorkOrdersCard() {
     final l10n = context.flipperL10n;
-    return stockRecountCard(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-      child: Center(
-        child: Column(
-          children: [
-            Container(
-              width: 92,
-              height: 92,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    StockRecountTokens.accentTint2,
-                    StockRecountTokens.accentTint,
-                  ],
-                ),
-              ),
-              child: StockRecountIcons.box(
-                size: 40,
-                color: StockRecountTokens.accent,
-              ),
-            ),
-            const SizedBox(height: 22),
-            Text(
-              l10n.productionOutputNoWorkOrdersYet,
-              style: StockRecountHelpers.text(
-                size: 19,
-                weight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              l10n.productionOutputNoWorkOrdersHint,
-              textAlign: TextAlign.center,
-              style: StockRecountHelpers.text(
-                size: 14.5,
-                color: StockRecountTokens.ink3,
-              ),
-            ),
-            const SizedBox(height: 22),
-            StockRecountPrimaryButton(
-              label: l10n.productionOutputNewWorkOrder,
-              leading: StockRecountIcons.plus(size: 19, color: Colors.white),
-              onPressed: () => _openCreateWorkOrder(true),
-            ),
-          ],
-        ),
-      ),
+    return ProductionEmptyState(
+      icon: Icons.inventory_2_outlined,
+      title: l10n.productionOutputNoWorkOrdersYet,
+      message: l10n.productionOutputNoWorkOrdersHint,
+      actionLabel: l10n.productionOutputNewWorkOrder,
+      actionIcon: Icons.add,
+      onAction: _openCreateWorkOrder,
     );
   }
 
@@ -426,164 +285,123 @@ class _ProductionOutputScreenState
   Widget _buildCarriedOverList(List<WorkOrder> orders) {
     final l10n = context.flipperL10n;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              Icon(Icons.history, color: Colors.orange[700], size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  l10n.productionOutputCarriedOver,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ),
-              Text(
-                l10n.productionOutputItemsCount(orders.length),
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-            ],
-          ),
+        _SectionHeading(
+          icon: Icons.history,
+          iconColor: PosTokens.warnAmber,
+          title: l10n.productionOutputCarriedOver,
+          trailing: l10n.productionOutputItemsCount(orders.length),
         ),
         ...orders.map((wo) => _buildWorkOrderCard(wo, showDueDate: true)),
       ],
     );
   }
 
-  Widget _buildWorkOrderCard(dynamic wo, {bool showDueDate = false}) {
-    final status = WorkOrderStatus.fromString(wo.status ?? 'planned');
-    final variance = (wo.actualQuantity ?? 0.0) - (wo.plannedQuantity ?? 0.0);
+  Widget _buildWorkOrderCard(WorkOrder wo, {bool showDueDate = false}) {
+    final status = WorkOrderStatus.fromString(wo.status);
+    final variance = wo.actualQuantity - wo.plannedQuantity;
     final varianceColor = variance >= 0
         ? Color(VarianceColors.positive)
         : Color(VarianceColors.negative);
     final l10n = context.flipperL10n;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: stockRecountCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    wo.variantName ?? l10n.productionOutputUnknownProduct,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: productionCardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  wo.variantName ?? l10n.productionOutputUnknownProduct,
+                  style: PosTokens.bodyStrong.copyWith(fontSize: 14),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color(status.color).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    status.localizedLabel(l10n),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Color(status.color),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+              ),
+              WorkOrderStatusBadge(status: status),
+            ],
+          ),
+          if (showDueDate) ...[
+            const SizedBox(height: 4),
+            Text(
+              MaterialLocalizations.of(
+                context,
+              ).formatMediumDate(localDay(wo.targetDate)),
+              style: PosTokens.meta.copyWith(color: PosTokens.warnAmber),
             ),
-            if (showDueDate) ...[
-              const SizedBox(height: 4),
-              Text(
-                MaterialLocalizations.of(
-                  context,
-                ).formatMediumDate(localDay(wo.targetDate as DateTime)),
-                style: TextStyle(fontSize: 12, color: Colors.orange[800]),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _Metric(
+                  label: l10n.productionOutputPlanned,
+                  value: wo.plannedQuantity.toStringAsFixed(0),
+                ),
+              ),
+              Expanded(
+                child: _Metric(
+                  label: l10n.productionOutputActual,
+                  value: wo.actualQuantity.toStringAsFixed(0),
+                  color: varianceColor,
+                ),
+              ),
+              Expanded(
+                child: _Metric(
+                  label: l10n.productionOutputVariance,
+                  value:
+                      '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
+                  color: varianceColor,
+                ),
               ),
             ],
-            const SizedBox(height: 12),
-            // Metrics row
-            Row(
+          ),
+          if (wo.status != 'completed') ...[
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: PosTokens.line),
+            const SizedBox(height: 6),
+            // Wraps on narrow phones rather than overflowing.
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 2,
               children: [
-                _buildMetricChip(
-                  l10n.productionOutputPlanned,
-                  wo.plannedQuantity?.toStringAsFixed(0) ?? '0',
-                ),
-                const SizedBox(width: 12),
-                _buildMetricChip(
-                  l10n.productionOutputActual,
-                  wo.actualQuantity?.toStringAsFixed(0) ?? '0',
-                  color: varianceColor,
-                ),
-                const SizedBox(width: 12),
-                _buildMetricChip(
-                  l10n.productionOutputVariance,
-                  '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
-                  color: varianceColor,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Actions row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (wo.status != 'completed') ...[
+                if (status == WorkOrderStatus.planned)
                   TextButton.icon(
-                    onPressed: () => _showRecordOutputDialog(wo),
-                    icon: const Icon(Icons.add_circle_outline, size: 18),
-                    label: Text(l10n.productionOutputRecord),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Color(VarianceColors.neutral),
-                    ),
+                    onPressed: () => _startWorkOrder(wo),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                    label: Text(l10n.productionOutputStart),
+                    style: _compactAction(PosTokens.ink2),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () => _completeWorkOrder(wo),
-                    icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: Text(l10n.productionOutputComplete),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Color(VarianceColors.positive),
-                    ),
-                  ),
-                ],
+                TextButton.icon(
+                  onPressed: () => _showRecordOutputDialog(wo),
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: Text(l10n.productionOutputRecord),
+                  style: _compactAction(PosTokens.blue),
+                ),
+                TextButton.icon(
+                  onPressed: () => _completeWorkOrder(wo),
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: Text(l10n.productionOutputComplete),
+                  style: _compactAction(PosTokens.gainInk),
+                ),
               ],
             ),
           ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildMetricChip(String label, String value, {Color? color}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: color ?? Colors.grey[800],
-          ),
-        ),
-      ],
-    );
-  }
+  static ButtonStyle _compactAction(Color color) => TextButton.styleFrom(
+    foregroundColor: color,
+    visualDensity: VisualDensity.compact,
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+  );
 
-  void _showWorkOrderDetails(dynamic workOrder) {
+  void _showWorkOrderDetails(WorkOrder workOrder) {
     showWorkOrderDetailsDialog(
       context: context,
       workOrder: workOrder,
@@ -593,17 +411,17 @@ class _ProductionOutputScreenState
     );
   }
 
-  void _showRecordOutputDialog(dynamic workOrder) async {
+  Future<void> _showRecordOutputDialog(WorkOrder workOrder) async {
     final failureMessage = context.flipperL10n.productionOutputRecordFailed;
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => _RecordOutputDialog(workOrder: workOrder),
+      builder: (context) => RecordOutputDialog(workOrder: workOrder),
     );
 
     if (result != null) {
       await _guard('record output', failureMessage, () async {
         final recorded = await _service.recordActualOutput(
-          workOrder: workOrder as WorkOrder,
+          workOrder: workOrder,
           actualQuantity: result['quantity'] as double,
           varianceReason: result['varianceReason'] as String?,
           notes: null,
@@ -650,160 +468,171 @@ class _ProductionOutputScreenState
     }
   }
 
-  Future<void> _completeWorkOrder(dynamic workOrder) async {
-    final failureMessage = context.flipperL10n.productionOutputCompleteFailed;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.flipperL10n.productionOutputCompleteTitle),
-        content: Text(
-          context.flipperL10n.productionOutputCompleteMessage(
-            '${workOrder.variantName}',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.flipperL10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(VarianceColors.positive),
-            ),
-            child: Text(context.flipperL10n.productionOutputComplete),
-          ),
-        ],
-      ),
+  Future<void> _completeWorkOrder(WorkOrder workOrder) async {
+    final l10n = context.flipperL10n;
+    final failureMessage = l10n.productionOutputCompleteFailed;
+    final confirmed = await showProductionConfirm(
+      context,
+      title: l10n.productionOutputCompleteTitle,
+      message: l10n.productionOutputCompleteMessage('${workOrder.variantName}'),
+      confirmLabel: l10n.productionOutputComplete,
+      icon: Icons.check_circle_outline,
+      tone: PosTokens.gain,
     );
-
-    if (confirm == true) {
+    if (confirmed) {
       await _guard(
         'complete this work order',
         failureMessage,
-        () => _service.completeWorkOrder(workOrder.id as String),
+        () => _service.completeWorkOrder(workOrder.id),
       );
     }
   }
 
-  Future<void> _startWorkOrder(dynamic workOrder) async {
-    final failureMessage = context.flipperL10n.productionOutputStartFailed;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.flipperL10n.productionOutputStartTitle),
-        content: Text(
-          context.flipperL10n.productionOutputStartMessage(
-            '${workOrder.variantName}',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.flipperL10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]),
-            child: Text(context.flipperL10n.productionOutputStart),
-          ),
-        ],
-      ),
+  Future<void> _startWorkOrder(WorkOrder workOrder) async {
+    final l10n = context.flipperL10n;
+    final failureMessage = l10n.productionOutputStartFailed;
+    final confirmed = await showProductionConfirm(
+      context,
+      title: l10n.productionOutputStartTitle,
+      message: l10n.productionOutputStartMessage('${workOrder.variantName}'),
+      confirmLabel: l10n.productionOutputStart,
+      icon: Icons.play_arrow_rounded,
     );
-
-    if (confirm == true) {
+    if (confirmed) {
       await _guard(
         'start this work order',
         failureMessage,
-        () => _service.startWorkOrder(workOrder as WorkOrder),
+        () => _service.startWorkOrder(workOrder),
       );
     }
   }
 }
 
-/// Dialog for recording output quantity
-class _RecordOutputDialog extends StatefulWidget {
-  final dynamic workOrder;
+/// Day strip on the left, refresh and New on the right (desktop); just the
+/// stacked strip on phones, whose actions live in the app bar.
+class _ProductionToolbar extends StatelessWidget {
+  const _ProductionToolbar({
+    required this.isPhone,
+    required this.canPop,
+    required this.onRefresh,
+    required this.onNew,
+  });
 
-  const _RecordOutputDialog({Key? key, required this.workOrder})
-    : super(key: key);
+  final bool isPhone;
 
-  @override
-  State<_RecordOutputDialog> createState() => _RecordOutputDialogState();
-}
-
-class _RecordOutputDialogState extends State<_RecordOutputDialog> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  /// Opened as its own route (Quick apps): show a way back. In the rail the
+  /// rail names the page, so there is no title.
+  final bool canPop;
+  final Future<void> Function() onRefresh;
+  final VoidCallback onNew;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.flipperL10n;
-    return AlertDialog(
-      title: Text(l10n.productionOutputRecordOutput),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final decoration = productionCardDecoration();
+    if (isPhone) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(4, 6, 4, 6),
+        decoration: decoration,
+        child: const ProductionDayBar(),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: decoration,
+      child: Row(
         children: [
-          Text(
-            l10n.productionOutputProductLabel(
-              '${widget.workOrder.variantName ?? l10n.productionOutputUnknown}',
+          if (canPop) ...[
+            IconButton(
+              icon: const Icon(Icons.arrow_back, size: PosTokens.iconMd),
+              color: PosTokens.ink2,
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              onPressed: () => Navigator.of(context).maybePop(),
             ),
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.productionOutputTargetLabel(
-              '${widget.workOrder.plannedQuantity.toStringAsFixed(0)}',
+            const SizedBox(width: 4),
+          ],
+          const Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ProductionDayBar(),
             ),
-            style: TextStyle(color: Colors.grey[600]),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: l10n.productionOutputActualQuantity,
-              border: const OutlineInputBorder(),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.refresh, size: PosTokens.iconMd),
+            color: PosTokens.ink2,
+            tooltip: l10n.refresh,
+            onPressed: onRefresh,
+            style: IconButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+                side: const BorderSide(color: PosTokens.line),
+              ),
             ),
-            autofocus: true,
           ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: onNew,
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(l10n.productionOutputNewOrder),
+            style: productionPrimaryButtonStyle(),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.cancel),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            final quantity = double.tryParse(_controller.text);
-            if (quantity != null && quantity > 0) {
-              // Calculate variance
-              final planned = widget.workOrder.plannedQuantity;
-              final variance = ((quantity - planned) / planned * 100).abs();
+    );
+  }
+}
 
-              String? varianceReason;
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({
+    required this.icon,
+    required this.title,
+    required this.trailing,
+    this.iconColor = PosTokens.ink2,
+  });
 
-              // Show variance reason dialog if variance is significant (>10%)
-              if (variance > 10) {
-                final result = await VarianceReasonDialog.show(context);
-                if (result != null) {
-                  varianceReason = result['reason'];
-                }
-              }
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String trailing;
 
-              Navigator.of(
-                context,
-              ).pop({'quantity': quantity, 'varianceReason': varianceReason});
-            }
-          },
-          child: Text(l10n.productionOutputRecord),
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, left: 2, right: 2),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(title, style: PosTokens.sectionTitle)),
+          Text(trailing, style: PosTokens.meta),
+        ],
+      ),
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  const _Metric({required this.label, required this.value, this.color});
+
+  final String label;
+  final String value;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: PosTokens.meta),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: PosTokens.bodyStrong.copyWith(
+            fontSize: 16,
+            color: color ?? PosTokens.ink1,
+          ),
         ),
       ],
     );

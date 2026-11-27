@@ -3,6 +3,8 @@ import 'dart:ui' show ImageFilter;
 import 'package:flipper_accounting/shift_history_viewmodel.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_design_system/flipper_design_system.dart'
+    show showFlipperDatePicker;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
@@ -403,10 +405,11 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
     });
   }
 
-  Future<void> _pickDate({required bool isFrom}) async {
+  Future<void> _pickDate({required bool isFrom, BuildContext? anchor}) async {
     final initial = isFrom ? _from : _to;
-    final picked = await showDatePicker(
+    final picked = await showFlipperDatePicker(
       context: context,
+      anchorContext: anchor,
       initialDate: initial ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
@@ -502,20 +505,28 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: _dateField(
-                                  label: l10n.accountingFrom,
-                                  date: _from,
-                                  onTap: () => _pickDate(isFrom: true),
-                                  onClear: () => setState(() => _from = null),
+                                child: Builder(
+                                  builder: (anchor) => _dateField(
+                                    label: l10n.accountingFrom,
+                                    date: _from,
+                                    onTap: () =>
+                                        _pickDate(isFrom: true, anchor: anchor),
+                                    onClear: () => setState(() => _from = null),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: _dateField(
-                                  label: l10n.accountingTo,
-                                  date: _to,
-                                  onTap: () => _pickDate(isFrom: false),
-                                  onClear: () => setState(() => _to = null),
+                                child: Builder(
+                                  builder: (anchor) => _dateField(
+                                    label: l10n.accountingTo,
+                                    date: _to,
+                                    onTap: () => _pickDate(
+                                      isFrom: false,
+                                      anchor: anchor,
+                                    ),
+                                    onClear: () => setState(() => _to = null),
+                                  ),
                                 ),
                               ),
                             ],
