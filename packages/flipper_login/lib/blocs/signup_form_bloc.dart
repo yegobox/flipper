@@ -292,20 +292,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   String _dialCodeForCountry(String country) => signupDialCodeFor(country);
 
   String _ensurePhoneHasDialCode(String phone, String country) {
-    final code = _dialCodeForCountry(country);
-    final cleaned = phone.trim();
-    if (cleaned.isEmpty) return code;
-    // If phone already starts with the correct dial code for this country, return as-is
-    if (cleaned.startsWith(code)) return cleaned;
-    // If phone starts with any known dial code, replace it with the correct
-    // one. Longest match first: `+1` and `+1268` are both dial codes, so a
-    // shortest-match scan would leave `268…` sitting in the local part.
-    final existing = matchLeadingDialCode(cleaned);
-    if (existing != null) return code + cleaned.substring(existing.length);
-    // Remove leading zero if present (local formats) and prepend dial code
-    var local = cleaned;
-    if (local.startsWith('0')) local = local.substring(1);
-    return '$code$local';
+    // Strips spaces/hyphens/parentheses the field allows; sending
+    // `+250788 221 189` to apihub made /v2/api/user answer 400.
+    final normalized = normalizeSignupPhone(phone, country: country);
+    return normalized.isEmpty ? _dialCodeForCountry(country) : normalized;
   }
 
   /// Guard to prevent concurrent OTP requests from firing duplicate HTTP calls.

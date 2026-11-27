@@ -82,6 +82,29 @@ void main() {
     });
   });
 
+  group('normalizeSignupPhone', () {
+    test('strips separators and adds the dial code', () {
+      for (final input in [
+        '0788 221 189',
+        '0788-221-189',
+        '(0788) 221189',
+        '+250 788 221 189',
+        '250788221189'.replaceFirst('250', '+250'),
+        '788221189',
+      ]) {
+        expect(normalizeSignupPhone(input, country: 'Rwanda'),
+            '+250788221189',
+            reason: input);
+      }
+    });
+
+    test('replaces another known dial code and keeps empty empty', () {
+      expect(normalizeSignupPhone('+260 977 123 456', country: 'Rwanda'),
+          '+250977123456');
+      expect(normalizeSignupPhone('  ', country: 'Rwanda'), '');
+    });
+  });
+
   group('searchSignupCountries', () {
     test('an empty query offers everything, in picker order', () {
       expect(searchSignupCountries('  '), kSignupCountryNames);

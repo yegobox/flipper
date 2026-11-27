@@ -414,6 +414,25 @@ String? matchLeadingDialCode(String value) {
   return null;
 }
 
+/// Typed phone separators: whitespace, parentheses, dots, hyphens and the
+/// Unicode dash range. The signup field accepts all of them.
+final RegExp _kPhoneSeparators = RegExp(r'[\s().‐-―-]');
+
+/// A phone number as apihub expects it: separators removed and [country]'s
+/// dial code in front (a leading trunk `0` or a different known dial code is
+/// replaced). `0788 221 189` -> `+250788221189`. Emails must not go through
+/// here. Empty input stays empty.
+String normalizeSignupPhone(String raw, {String? country}) {
+  final cleaned = raw.trim().replaceAll(_kPhoneSeparators, '');
+  if (cleaned.isEmpty) return '';
+  final code = signupDialCodeFor(country);
+  if (cleaned.startsWith(code)) return cleaned;
+  final existing = matchLeadingDialCode(cleaned);
+  if (existing != null) return code + cleaned.substring(existing.length);
+  final local = cleaned.startsWith('0') ? cleaned.substring(1) : cleaned;
+  return '$code$local';
+}
+
 /// E.164 caps a full international number at 15 digits, and the shortest
 /// national numbers still in service are four. Signup used to check a phone
 /// number against a per-country length table (`[9]` digits for Rwanda, Zambia

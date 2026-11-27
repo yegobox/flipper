@@ -1045,8 +1045,10 @@ mixin AuthMixin implements AuthInterface {
         )) {
           throw const LoginLinkedToOtherAccountException();
         }
+        final detail = response.body.trim();
         throw Exception(
-          "Authentication failed with status code ${response.statusCode}",
+          "Authentication failed with status code ${response.statusCode}"
+          "${detail.isEmpty ? '' : ': ${detail.length > 200 ? detail.substring(0, 200) : detail}'}",
         );
       }
       //
