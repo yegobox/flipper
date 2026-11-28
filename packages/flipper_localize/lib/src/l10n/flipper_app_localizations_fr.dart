@@ -28783,4 +28783,84 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get tenantMgmtPinOnly => 'PIN uniquement';
+
+  @override
+  String get mcpConsentTitle => 'Connecter un client IA à Flipper';
+
+  @override
+  String get mcpConsentSignInDescription =>
+      'Connectez-vous pour examiner la demande d\'accès en lecture seule de ce client.';
+
+  @override
+  String get mcpConsentSignInButton => 'Se connecter à Flipper';
+
+  @override
+  String get mcpConsentRequestMissingId =>
+      'Cette demande d\'autorisation ne contient pas son identifiant.';
+
+  @override
+  String get mcpConsentUnavailable => 'Autorisation indisponible';
+
+  @override
+  String get mcpConsentTryAgain => 'Réessayer';
+
+  @override
+  String get mcpConsentLoadFailed =>
+      'Impossible de charger cette demande d\'autorisation. Réessayez.';
+
+  @override
+  String get mcpConsentDecisionFailed =>
+      'Impossible d\'envoyer votre décision. Réessayez.';
+
+  @override
+  String get mcpConsentRedirectMissing =>
+      'Supabase n\'a fourni aucune URL de redirection d\'autorisation.';
+
+  @override
+  String get mcpConsentInvalidRedirect =>
+      'Le serveur d\'autorisation a renvoyé une redirection non valide.';
+
+  @override
+  String get mcpConsentRedirectFailed =>
+      'Impossible d\'ouvrir la redirection vers le client MCP.';
+
+  @override
+  String get mcpConsentAccessApproved => 'Accès approuvé';
+
+  @override
+  String get mcpConsentAccessDenied => 'Accès refusé';
+
+  @override
+  String get mcpConsentReturnApproved =>
+      'Revenez au client IA pour terminer la connexion à Flipper.';
+
+  @override
+  String get mcpConsentReturnDenied =>
+      'Revenez au client IA. Il ne sera pas connecté à Flipper.';
+
+  @override
+  String get mcpConsentContinue => 'Continuer vers le client IA';
+
+  @override
+  String get mcpConsentClientDefault => 'Client MCP';
+
+  @override
+  String get mcpConsentClientRedirectUri => 'URI de redirection du client';
+
+  @override
+  String get mcpConsentRequestedScopes => 'Autorisations d\'identité demandées';
+
+  @override
+  String get mcpConsentReadOnlyDescription =>
+      'Ce client peut lire les succursales accessibles à votre compte Flipper et les résumés des transactions terminées de ces succursales. Il ne peut pas modifier les données Flipper.';
+
+  @override
+  String get mcpConsentAfterDecision =>
+      'Après l\'approbation, revenez au client pour terminer la connexion. Vous pouvez aussi refuser cette demande.';
+
+  @override
+  String get mcpConsentApprove => 'Autoriser l\'accès en lecture seule';
+
+  @override
+  String get mcpConsentDeny => 'Refuser';
 }

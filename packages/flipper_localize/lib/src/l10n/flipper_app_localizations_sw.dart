@@ -28505,4 +28505,84 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get tenantMgmtPinOnly => 'PIN pekee';
+
+  @override
+  String get mcpConsentTitle => 'Unganisha mteja wa AI na Flipper';
+
+  @override
+  String get mcpConsentSignInDescription =>
+      'Ingia ili ukague ombi la mteja huyu la ufikiaji wa kusoma pekee.';
+
+  @override
+  String get mcpConsentSignInButton => 'Ingia kwenye Flipper';
+
+  @override
+  String get mcpConsentRequestMissingId =>
+      'Ombi hili la ruhusa halina kitambulisho chake.';
+
+  @override
+  String get mcpConsentUnavailable => 'Ruhusa haipatikani';
+
+  @override
+  String get mcpConsentTryAgain => 'Jaribu tena';
+
+  @override
+  String get mcpConsentLoadFailed =>
+      'Imeshindwa kupakia ombi hili la ruhusa. Jaribu tena.';
+
+  @override
+  String get mcpConsentDecisionFailed =>
+      'Imeshindwa kutuma uamuzi wako. Jaribu tena.';
+
+  @override
+  String get mcpConsentRedirectMissing =>
+      'Supabase haikutoa URL ya kuelekeza baada ya idhini.';
+
+  @override
+  String get mcpConsentInvalidRedirect =>
+      'Seva ya ruhusa imetoa uelekezaji usio sahihi.';
+
+  @override
+  String get mcpConsentRedirectFailed =>
+      'Imeshindwa kufungua uelekezaji wa mteja wa MCP.';
+
+  @override
+  String get mcpConsentAccessApproved => 'Ufikiaji umeidhinishwa';
+
+  @override
+  String get mcpConsentAccessDenied => 'Ufikiaji umekataliwa';
+
+  @override
+  String get mcpConsentReturnApproved =>
+      'Rudi kwa mteja wa AI ili umalize kuunganisha na Flipper.';
+
+  @override
+  String get mcpConsentReturnDenied =>
+      'Rudi kwa mteja wa AI. Hataunganishwa na Flipper.';
+
+  @override
+  String get mcpConsentContinue => 'Endelea kwa mteja wa AI';
+
+  @override
+  String get mcpConsentClientDefault => 'Mteja wa MCP';
+
+  @override
+  String get mcpConsentClientRedirectUri => 'URI ya kuelekeza ya mteja';
+
+  @override
+  String get mcpConsentRequestedScopes => 'Ruhusa za utambulisho zilizoombwa';
+
+  @override
+  String get mcpConsentReadOnlyDescription =>
+      'Mteja huyu anaweza kusoma matawi yanayopatikana kwenye akaunti yako ya Flipper na muhtasari wa miamala iliyokamilika ya matawi hayo. Hawezi kubadilisha data ya Flipper.';
+
+  @override
+  String get mcpConsentAfterDecision =>
+      'Baada ya kuidhinisha, rudi kwa mteja ili umalize kuunganisha. Unaweza kukataa ombi hili badala yake.';
+
+  @override
+  String get mcpConsentApprove => 'Idhinisha ufikiaji wa kusoma pekee';
+
+  @override
+  String get mcpConsentDeny => 'Kataa';
 }

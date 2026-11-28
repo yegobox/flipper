@@ -28604,4 +28604,85 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get tenantMgmtPinOnly => 'PIN gusa';
+
+  @override
+  String get mcpConsentTitle => 'Huza umukiriya wa AI na Flipper';
+
+  @override
+  String get mcpConsentSignInDescription =>
+      'Injira usuzume ubusabe bw\'uyu mukiriya bwo gusoma amakuru gusa.';
+
+  @override
+  String get mcpConsentSignInButton => 'Injira muri Flipper';
+
+  @override
+  String get mcpConsentRequestMissingId =>
+      'Iyi dosiye isaba uburenganzira ibuze nomero yayo.';
+
+  @override
+  String get mcpConsentUnavailable => 'Uburenganzira ntibuboneka';
+
+  @override
+  String get mcpConsentTryAgain => 'Ongera ugerageze';
+
+  @override
+  String get mcpConsentLoadFailed =>
+      'Ntitwashoboye gufungura ubu busabe bw\'uburenganzira. Ongera ugerageze.';
+
+  @override
+  String get mcpConsentDecisionFailed =>
+      'Ntitwashoboye kohereza umwanzuro wawe. Ongera ugerageze.';
+
+  @override
+  String get mcpConsentRedirectMissing =>
+      'Supabase ntiyatanze aderesi yo gusubizaho uburenganzira.';
+
+  @override
+  String get mcpConsentInvalidRedirect =>
+      'Seriveri y\'uburenganzira yatanze aderesi yo gusubizaho itari yo.';
+
+  @override
+  String get mcpConsentRedirectFailed =>
+      'Ntitwashoboye gufungura aderesi isubiza kuri MCP.';
+
+  @override
+  String get mcpConsentAccessApproved => 'Uburenganzira bwemejwe';
+
+  @override
+  String get mcpConsentAccessDenied => 'Uburenganzira bwanze';
+
+  @override
+  String get mcpConsentReturnApproved =>
+      'Subira kuri porogaramu ya AI urangize kuyihuza na Flipper.';
+
+  @override
+  String get mcpConsentReturnDenied =>
+      'Subira kuri porogaramu ya AI. Ntizahuzwa na Flipper.';
+
+  @override
+  String get mcpConsentContinue => 'Komeza kuri porogaramu ya AI';
+
+  @override
+  String get mcpConsentClientDefault => 'Umukiriya wa MCP';
+
+  @override
+  String get mcpConsentClientRedirectUri => 'Aderesi umukiriya asubiraho';
+
+  @override
+  String get mcpConsentRequestedScopes =>
+      'Uburenganzira bw\'umwirondoro busabwe';
+
+  @override
+  String get mcpConsentReadOnlyDescription =>
+      'Uyu mukiriya ashobora gusoma amashami konti yawe ya Flipper yemerewe n\'incamake z\'ibicuruzwa byagurishijwe muri ayo mashami. Ntashobora guhindura amakuru ya Flipper.';
+
+  @override
+  String get mcpConsentAfterDecision =>
+      'Nyuma yo kwemeza, subira kuri porogaramu urangize kuyihuza. Ushobora no kwanga ubu busabe.';
+
+  @override
+  String get mcpConsentApprove => 'Emeza uburenganzira bwo gusoma gusa';
+
+  @override
+  String get mcpConsentDeny => 'Wange';
 }

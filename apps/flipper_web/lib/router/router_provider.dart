@@ -10,6 +10,7 @@ import 'package:flipper_web/features/billing/presentation/books_billing_gate.dar
 import 'package:flipper_web/features/billing/presentation/books_subscribe_page.dart';
 import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flipper_web/features/login/pin_screen.dart';
+import 'package:flipper_web/features/login/oauth_consent_screen.dart';
 import 'package:flipper_web/features/login/signup_view.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
 import 'package:flipper_web/features/custom_payment/presentation/custom_payment_page.dart';
@@ -35,7 +36,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     refreshListenable: authRefresh,
     initialLocation:
-        shopDeepLinkLocation(Uri.base) ?? unauthenticatedEntryLocation,
+        oauthConsentDeepLinkLocation(Uri.base) ??
+        shopDeepLinkLocation(Uri.base) ??
+        unauthenticatedEntryLocation,
     observers: [createPostHogObserver()],
     routes: [
       // Root shows AuthWrapper which will choose appropriate screen
@@ -45,7 +48,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const PinScreen(),
+        builder: (context, state) => PinScreen(
+          continueTo: validatedOAuthConsentReturnTo(
+            state.uri.queryParameters['continue'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/oauth/consent',
+        builder: (context, state) => OAuthConsentScreen(
+          authorizationId: state.uri.queryParameters['authorization_id'] ?? '',
+        ),
       ),
       GoRoute(path: '/signup', builder: (context, state) => const SignupView()),
       // Public: the apps and the Atlas launcher download, signed in or out.
@@ -134,6 +147,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               orElse: () => false,
             ),
       opensOnLoginScreen: opensOnLoginScreen,
+      continueTo: state.uri.queryParameters['continue'],
     ),
   );
 });
