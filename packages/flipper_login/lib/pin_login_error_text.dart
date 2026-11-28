@@ -89,6 +89,11 @@ String pinLoginErrorText(Object error, [FlipperAppLocalizations? l10n]) {
 /// (`loginErrorNoAccountForPin`). It is input, not a failure, so it stays out
 /// of PostHog, where it showed up as a critical issue. Everything else,
 /// timeouts included, is still reported.
+///
+/// [PinError] stays reportable: it is never input. The PIN field accepts 4 to
+/// 6 digits only, and for such a PIN the lookup answers 200 or 404, so a
+/// PinError is always a server fault (a 500 from turbo, or 502/503/504 from
+/// nginx). Its `toString` carries that status for error tracking.
 bool pinLoginErrorIsReportable(Object error) => error is! NeedSignUpException;
 
 int? _httpStatus(String text) {

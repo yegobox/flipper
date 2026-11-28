@@ -118,5 +118,12 @@ void main() {
         isTrue,
       );
     });
+
+    test('a reported PinError names the HTTP status, not its type', () {
+      // GlobalErrorHandler sends toString() to PostHog as the exception value.
+      expect(PinError(term: 'HTTP 503').toString(), 'PinError: HTTP 503');
+      expect(
+          PinError(term: 'HTTP 500').toString(), isNot(contains('Instance')));
+    });
   });
 }
