@@ -30,12 +30,28 @@ class SessionException implements Exception {
   SessionException({required this.term});
 }
 
+/// The server could not check the PIN or log the user in.
+///
+/// Thrown when:
+/// - `GET /v2/api/pin/<pin>` answers anything but 200 or 404. 200 returns the
+///   PIN, and 404 (no account has that PIN) throws [NeedSignUpException].
+///   Every other status maps here: usually a server fault (turbo returns 500
+///   when its Supabase lookup fails; nginx 502/503/504 when turbo is down),
+///   but a 400 or 429 lands here too. [term] is `HTTP <status>`.
+/// - the login request answers 500. [term] is `Not found`, with no status.
+///
+/// [term] never holds the PIN.
 class PinError implements Exception {
   String term;
 
   String errMsg() => 'Pin: $term';
 
   PinError({required this.term});
+
+  /// Error tracking shows this text, so it must name the failure; the default
+  /// was the unreadable "Instance of 'PinError'".
+  @override
+  String toString() => 'PinError: $term';
 }
 
 class NeedSignUpException implements Exception {
