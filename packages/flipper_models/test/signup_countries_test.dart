@@ -87,21 +87,69 @@ void main() {
       for (final input in [
         '0788 221 189',
         '0788-221-189',
+        '0788\u2013221\u2013189',
         '(0788) 221189',
+        '0788.221.189',
         '+250 788 221 189',
-        '250788221189'.replaceFirst('250', '+250'),
         '788221189',
       ]) {
-        expect(normalizeSignupPhone(input, country: 'Rwanda'),
-            '+250788221189',
-            reason: input);
+        expect(
+          normalizeSignupPhone(input, country: 'Rwanda'),
+          '+250788221189',
+          reason: input,
+        );
       }
     });
 
+    test('a bare dial code without its + is read as a national number', () {
+      // Same contract as web's normalizeSignupContact: only a code typed with
+      // its `+` is recognized, since bare digits can be a national number.
+      expect(
+        normalizeSignupPhone('250788221189', country: 'Rwanda'),
+        '+250250788221189',
+      );
+      expect(
+        normalizeSignupPhone('250 788 221 189', country: 'Rwanda'),
+        '+250250788221189',
+      );
+    });
+
     test('replaces another known dial code and keeps empty empty', () {
-      expect(normalizeSignupPhone('+260 977 123 456', country: 'Rwanda'),
-          '+250977123456');
+      expect(
+        normalizeSignupPhone('+260 977 123 456', country: 'Rwanda'),
+        '+250977123456',
+      );
       expect(normalizeSignupPhone('  ', country: 'Rwanda'), '');
+      expect(normalizeSignupPhone(' - ( ) ', country: 'Rwanda'), '');
+    });
+  });
+
+  group('stripSignupPhoneSeparators', () {
+    test('removes spaces, brackets, dots and every dash', () {
+      expect(
+        stripSignupPhoneSeparators('(078) 305.48\u201074-\u2015'),
+        '0783054874',
+      );
+    });
+  });
+
+  group('redactSignupContact', () {
+    test('masks the number with or without its +', () {
+      expect(
+        redactSignupContact(
+          '{"error":"+250788221189 exists","raw":"250788221189"}',
+          '+250788221189',
+        ),
+        '{"error":"<contact> exists","raw":"<contact>"}',
+      );
+    });
+
+    test('masks an email and leaves other text alone', () {
+      expect(
+        redactSignupContact('user a.b@x.co not found', 'a.b@x.co'),
+        'user <contact> not found',
+      );
+      expect(redactSignupContact('database timeout', ' '), 'database timeout');
     });
   });
 
@@ -172,15 +220,23 @@ void main() {
     test('rejects letters instead of counting round them', () {
       // Stripping non-digits first made this nine digits, so it passed — and
       // the normalizer keeps letters, so `+250abc0788123456` went to the API.
-      expect(isPlausiblePhoneNumber('abc0788123456', country: 'Rwanda'),
-          isFalse);
-      expect(isPlausiblePhoneNumber('0788123456 (work)', country: 'Rwanda'),
-          isFalse);
-      expect(isPlausiblePhoneNumber('user@example.com', country: 'Rwanda'),
-          isFalse);
+      expect(
+        isPlausiblePhoneNumber('abc0788123456', country: 'Rwanda'),
+        isFalse,
+      );
+      expect(
+        isPlausiblePhoneNumber('0788123456 (work)', country: 'Rwanda'),
+        isFalse,
+      );
+      expect(
+        isPlausiblePhoneNumber('user@example.com', country: 'Rwanda'),
+        isFalse,
+      );
       // The separators people do type stay welcome.
-      expect(isPlausiblePhoneNumber('(078) 812-3456', country: 'Rwanda'),
-          isTrue);
+      expect(
+        isPlausiblePhoneNumber('(078) 812-3456', country: 'Rwanda'),
+        isTrue,
+      );
     });
 
     test('rejects too short and beyond E.164', () {

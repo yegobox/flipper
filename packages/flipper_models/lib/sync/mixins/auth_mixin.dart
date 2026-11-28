@@ -6,6 +6,7 @@ import 'package:flipper_models/account_mode/account_mode_store.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -1036,8 +1037,13 @@ mixin AuthMixin implements AuthInterface {
 
       // Check for error response
       if (response.statusCode != 200) {
+        // The body goes to the log only, with the contact masked: the
+        // exception message reaches the "Failed to send OTP" snackbar, and
+        // `_isLikelyNetworkFailure` reads it (a 500 "database timeout" body
+        // would pass for a network error and fall back to offline login).
         talker.error(
-          "Authentication failed with status code ${response.statusCode}: ${response.body}",
+          "Authentication failed with status code ${response.statusCode}: "
+          "${redactSignupContact(response.body, apiPhone)}",
         );
         if (LoginLinkedToOtherAccountException.matches(
           response.statusCode,
@@ -1045,10 +1051,8 @@ mixin AuthMixin implements AuthInterface {
         )) {
           throw const LoginLinkedToOtherAccountException();
         }
-        final detail = response.body.trim();
         throw Exception(
-          "Authentication failed with status code ${response.statusCode}"
-          "${detail.isEmpty ? '' : ': ${detail.length > 200 ? detail.substring(0, 200) : detail}'}",
+          "Authentication failed with status code ${response.statusCode}",
         );
       }
       //

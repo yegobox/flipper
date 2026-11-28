@@ -374,7 +374,8 @@ List<String> searchSignupCountries(String query, {List<String>? within}) {
 
   // An exact ISO code or alias names one country; offer it first, since
   // nothing about 'USA' resembles 'United States' as a string.
-  final resolved = _byIso2[trimmed.toUpperCase()]?.name ??
+  final resolved =
+      _byIso2[trimmed.toUpperCase()]?.name ??
       (_nameAliases[trimmed] != null ? _nameAliases[trimmed] : null);
 
   final starts = <String>[];
@@ -415,15 +416,31 @@ String? matchLeadingDialCode(String value) {
 }
 
 /// Typed phone separators: whitespace, parentheses, dots, hyphens and the
-/// Unicode dash range. The signup field accepts all of them.
-final RegExp _kPhoneSeparators = RegExp(r'[\s().‐-―-]');
+/// Unicode dash range a phone keyboard offers. The signup field accepts all of
+/// them.
+final RegExp _kPhoneSeparators = RegExp(r'[\s().\u2010-\u2015-]');
+
+/// [raw] with its phone separators removed, so `078 305 4874`, `078-305-4874`
+/// and `(078) 305 4874` are the same contact.
+String stripSignupPhoneSeparators(String raw) =>
+    raw.replaceAll(_kPhoneSeparators, '');
 
 /// A phone number as apihub expects it: separators removed and [country]'s
-/// dial code in front (a leading trunk `0` or a different known dial code is
-/// replaced). `0788 221 189` -> `+250788221189`. Emails must not go through
-/// here. Empty input stays empty.
+/// dial code in front. `0788 221 189` -> `+250788221189`.
+///
+/// The one phone normalizer for signup, shared by the mobile signup bloc
+/// (`_ensurePhoneHasDialCode` in packages/flipper_login) and web signup
+/// (`normalizeSignupContact` in apps/flipper_web/lib/core/signup_contact.dart,
+/// which only adds the email pass-through). The contract:
+/// - empty input stays empty;
+/// - a number already carrying [country]'s code is kept;
+/// - another known dial code is replaced, but only when typed with its `+`;
+/// - otherwise a leading trunk `0` is dropped and the code is prepended. Bare
+///   digits carry no dial code, so `250788221189` is read as a national number.
+///
+/// Emails must not go through here.
 String normalizeSignupPhone(String raw, {String? country}) {
-  final cleaned = raw.trim().replaceAll(_kPhoneSeparators, '');
+  final cleaned = stripSignupPhoneSeparators(raw.trim());
   if (cleaned.isEmpty) return '';
   final code = signupDialCodeFor(country);
   if (cleaned.startsWith(code)) return cleaned;
@@ -431,6 +448,15 @@ String normalizeSignupPhone(String raw, {String? country}) {
   if (existing != null) return code + cleaned.substring(existing.length);
   final local = cleaned.startsWith('0') ? cleaned.substring(1) : cleaned;
   return '$code$local';
+}
+
+/// [text] with every occurrence of the signup [contact] (a phone number, with
+/// or without its leading `+`, or an email) masked. For logging server replies
+/// that may echo the contact back.
+String redactSignupContact(String text, String contact) {
+  final bare = contact.trim().replaceFirst(RegExp(r'^\+'), '');
+  if (bare.isEmpty) return text;
+  return text.replaceAll(RegExp('\\+?${RegExp.escape(bare)}'), '<contact>');
 }
 
 /// E.164 caps a full international number at 15 digits, and the shortest
