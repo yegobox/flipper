@@ -27,6 +27,7 @@ android {
     }
 
     sourceSets["main"].java.srcDirs("src/main/kotlin")
+    sourceSets["test"].java.srcDirs("src/test/kotlin")
 
     defaultConfig {
         applicationId = "rw.flipper"
@@ -122,6 +123,8 @@ dependencies {
     // implementation("com.google.firebase:firebase-auth-ktx")
 
     androidTestUtil("androidx.test:orchestrator:1.5.1")
+    // JVM unit tests: ./gradlew :app:testDebugUnitTest
+    testImplementation("junit:junit:4.13.2")
 
     // AndroidX
     implementation("androidx.window:window:1.3.0")

@@ -1,6 +1,7 @@
 package rw.flipper
 
 import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
@@ -15,10 +16,48 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
 
     private var shortcutsChannel: MethodChannel? = null
+    private var deviceEnvChannel: MethodChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        captureColdStartShortcut(intent)
+        // Joining the running engine is no cold start: Dart read its cold
+        // shortcut page long ago, so this one goes the warm way.
+        val warm = ProcessFlutterEngine.isDartRunning
+        // Read first: super.onCreate resets it from a saved state that never
+        // holds it for an engine this activity didn't build.
+        val handlesBack = ProcessFlutterEngine.frameworkHandlesBack
+        if (!warm) captureColdStartShortcut(intent)
         super.onCreate(savedInstanceState)
+        if (warm) {
+            setFrameworkHandlesBack(handlesBack)
+            // A recreated activity carries the intent Dart already handled.
+            if (savedInstanceState == null) dispatchWarmShortcut(intent)
+        }
+    }
+
+    // One engine, one main() and one Ditto store per process: see
+    // ProcessFlutterEngine. The engine is not destroyed with this activity.
+    override fun provideFlutterEngine(context: Context): FlutterEngine =
+        ProcessFlutterEngine.obtain(context, flutterEngineFlags)
+
+    // A newer MainActivity took the engine. This one could only show a blank
+    // view now, so it leaves the back stack.
+    override fun detachFromFlutterEngine() {
+        super.detachFromFlutterEngine()
+        finish()
+    }
+
+    override fun setFrameworkHandlesBack(frameworkHandlesBack: Boolean) {
+        ProcessFlutterEngine.frameworkHandlesBack = frameworkHandlesBack
+        super.setFrameworkHandlesBack(frameworkHandlesBack)
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        // The engine outlives this activity: drop the handlers that hold it.
+        deviceEnvChannel?.setMethodCallHandler(null)
+        deviceEnvChannel = null
+        shortcutsChannel?.setMethodCallHandler(null)
+        shortcutsChannel = null
+        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -32,11 +71,13 @@ class MainActivity : FlutterActivity() {
         // Raw signals of an automated test device (Play's pre-launch robots,
         // Firebase Test Lab, device farms). Dart decides, and keeps those
         // devices out of analytics.
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_ENV_CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "environment" -> result.success(deviceEnvironment())
-                    else -> result.notImplemented()
+        deviceEnvChannel =
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_ENV_CHANNEL).also {
+                it.setMethodCallHandler { call, result ->
+                    when (call.method) {
+                        "environment" -> result.success(deviceEnvironment())
+                        else -> result.notImplemented()
+                    }
                 }
             }
         shortcutsChannel =

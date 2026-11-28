@@ -88,3 +88,22 @@ await DittoCleanup.cleanupOldDirectories();
 2. **Data Migration**: Migrate data from previous directories on startup
 3. **Configurable Cleanup**: User-configurable cleanup intervals
 4. **Health Monitoring**: Automatic detection and resolution of lock issues
+## Android: one Flutter engine per process
+
+A Dart static or a Dart file lock only sees its own isolate (`fcntl` locks are
+per process). By default every `FlutterActivity` builds its own engine, so
+when Android starts a second `MainActivity`, or recreates it, while the process
+lives, a second isolate runs `main()` and Ditto fails on
+`/data/data/rw.flipper/databases` with "File already locked". `DittoSingleton`
+and `DittoStoreHolds` (#965) cannot see the other isolate.
+
+`MainActivity.provideFlutterEngine` returns `ProcessFlutterEngine`, the one
+engine of the process. A new activity attaches to it (the older one is evicted
+and finishes), and the engine is not destroyed with its activity, so `main()`
+and Ditto open once per process. Coming back after backing out of the app is
+now warm: Dart keeps its state, as on iOS. A shortcut that opens a new activity
+is sent the warm way (`onShortcutLaunched`).
+
+PostHog shows the signature: `Application Opened` with `from_background:
+true`, then `product_active` `resume` (the old isolate), then `product_active`
+`cold_start` (a second `main()` in the same process) and the lock error.
