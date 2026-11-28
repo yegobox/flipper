@@ -32,12 +32,15 @@ class SessionException implements Exception {
 
 /// The server could not check the PIN or log the user in.
 ///
-/// Thrown only for server-side faults, never for what the user typed:
-/// `GET /v2/api/pin/<pin>` answering anything but 200 or 404 (turbo returns
-/// 500 when its Supabase lookup fails; nginx 502/503/504 when turbo is down)
-/// and a 500 from the login request. A PIN with no account is a 404, thrown as
-/// [NeedSignUpException]. [term] is the HTTP status (`HTTP 503`) or a short
-/// reason, never the PIN.
+/// Thrown when:
+/// - `GET /v2/api/pin/<pin>` answers anything but 200 or 404. 200 returns the
+///   PIN, and 404 (no account has that PIN) throws [NeedSignUpException].
+///   Every other status maps here: usually a server fault (turbo returns 500
+///   when its Supabase lookup fails; nginx 502/503/504 when turbo is down),
+///   but a 400 or 429 lands here too. [term] is `HTTP <status>`.
+/// - the login request answers 500. [term] is `Not found`, with no status.
+///
+/// [term] never holds the PIN.
 class PinError implements Exception {
   String term;
 
